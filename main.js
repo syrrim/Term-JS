@@ -3,16 +3,10 @@ window.environment = {
     PATH: "scripts/"
 };
 Communicate = function(finish){
-    this.onfinish = [finish];
+    this.finish = finish;
 };
 Communicate.prototype = {
     dead: false,
-    finish: function(code){
-        this.code = code;
-        for(var i = 0; i < this.onfinish.length; i++){
-            this.onfinish[i](code, this);
-        }
-    }
 };
 function In(stream){
     this.stream = stream;
@@ -105,9 +99,10 @@ Controller.prototype = {
     },
     kill_job: function(){
         for(var i = 0; i < this.job; i ++){
-            this.job[i].death = true;
+            this.job[i].dead = true;
         }
-        this.get_job();
+        self = this;
+        setTimeout(function(){self.get_job();}, 1);
     },
     get_job: function(){
         this.print("~>")
@@ -160,7 +155,8 @@ Controller.prototype = {
                         load(path[i])
                     }
                     else{
-                        self.print("No p ")
+                        self.print(args[0] + ": command not found\n")
+                        communicate.finish();
                     }
                 }
                 document.getElementsByTagName("head")[0].appendChild(script);
@@ -172,6 +168,7 @@ Controller.prototype = {
         else{
             window.process[args[0]](args, instream, outstream, communicate);
         }
+
     },
     displayin: function(){
         var self = this

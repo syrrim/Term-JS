@@ -6,7 +6,7 @@ window.process.grep = function(args, stdin, stdout, communicate){
             return;
         }
         if(line.match(search)){
-            stdout.write(line);
+            stdout.writeln(line);
         }
         stdin.readln(grep)
     }

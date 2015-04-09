@@ -1,8 +1,16 @@
-window.process = {};
+window.process = {
+};
 window.environment = {
     PATH: "scripts/"
 };
-Communicate = function(finish){
+window.process.export = function(args, stdin, stdout, communicate){
+    sides = args[1].split("=")
+    name = sides[0]
+    value = sides[1]
+    window.environment[name] = value
+    communicate.finish();
+}
+function Communicate(finish){
     this.finish = finish;
 };
 Communicate.prototype = {
@@ -21,7 +29,7 @@ In.prototype = {
         }
         else{
             this.index ++;
-            this.stream.listener.push(callback);
+            this.stream.line_listener.push(callback);
         }
     },
     read: function(callback){
@@ -75,21 +83,105 @@ Stream.prototype = {
     reader: function(){
         return new In(this);
     },
+};
+
+function Pipeline(callback){
+    this.callback = callback;
+    this.comms = [];
+    this.live = [];
+
 }
-function Controller(id){
-    this.userin = new UserIn("current");
-    self = this;
+Pipeline.prototype = {
+    death: function(comm){
+        dead = false;
+        found = false;
+        for(var i = 0; i < this.comms.length; i ++){
+            if(this.comms[i] === comm){
+                this.live[i] = false;
+                found = true;
+            }
+            else if(!found){
+                this.comms[i].dead = true;
+            }
+            dead = this.live[i] && dead;
+        }
+        if(dead){
+            this.callback()
+        }
+
+    },
+    add: function(args, stdin, stdout){
+        self = this;
+        var communicate = new Communicate(function(){
+            self.death();
+        })
+        if(!window.process[args[0]]){
+            path = window.environment.PATH.split(":");
+            var i = 0; //convoluted async for loop
+            function load(location){
+                script = document.createElement("script");
+                script.src = location + args[0] + ".js"
+                script.onload = function(){
+                    window.process[args[0]](args, instream, outstream, communicate);
+                    this.comms.push(communicate)
+                    this.live.push(true);
+                }
+                script.onerror = function(){
+                    i ++;
+                    if(i<path.lenght){
+                        load(path[i])
+                    }
+                    else{
+                        self.println(args[0] + ": command not found")
+                        communicate.finish();
+                    }
+                }
+                document.getElementsByTagName("head")[0].appendChild(script);
+            }
+            if(i<path.length){
+                load(path[i])
+            }
+            else{
+                self
+            }
+       }
+        else{
+            window.process[args[0]](args, instream, outstream, communicate);
+        }
+
+    }
+};
+
+function Controller(backColor, mainColor, errColor, id){
+    this.backColor = backColor;
+    this.mainColor = mainColor;
+    this.errColor = errColor;
+    this.id = id;
     term = document.getElementById(id);
     term.focus()
+    term.style = "font-family:courier; color:"+mainColor+"; background-color:"+backColor+";"
+    term.innerHTML = '<pre id="text"><span id="finished"></span><span id="current"><span id="pointer" style="color:green;background-color:green">|</span></span></pre>'
+    this.userin = new UserIn("current");
+    this.prompt = new Stream().reader();
+    this.err = new Stream().reader()
+    self = this;
     document.addEventListener("keypress", function(e){
         e = e || window.event;
         if(self.press(e) || self.userin.press(e)){
             e.preventDefault()
         }
     });
+    this.errorReport()
     this.get_job()
 };
 Controller.prototype = {
+    errorReport: function(){
+        function err(line){
+            self.println("<span style='color:"+self.errColor+"'>"+line+"</span>");
+            self.err.readln(err);
+        }
+        this.err.readln(err);
+    },
     press: function(e){
         if(e.ctrlKey && e.charCode == 99){
             self.kill_job();
@@ -107,8 +199,9 @@ Controller.prototype = {
     get_job: function(){
         this.print("~>")
         var self = this
-        this.userin.reset_input().reader().readln(function(line){
-            self.print(line);
+        this.userin.stream = this.prompt.stream
+        this.prompt.readln(function(line){
+            self.println(line);
             self.start_job(line)
         })
     },
@@ -147,7 +240,7 @@ Controller.prototype = {
                 script = document.createElement("script");
                 script.src = location + args[0] + ".js"
                 script.onload = function(){
-                    window.process[args[0]](args, instream, outstream, communicate);
+                    window.process[args[0]](args, instream, outstream, self.err.stream, communicate);
                 }
                 script.onerror = function(){
                     i ++;
@@ -155,7 +248,7 @@ Controller.prototype = {
                         load(path[i])
                     }
                     else{
-                        self.print(args[0] + ": command not found\n")
+                        self.println(args[0] + ": command not found")
                         communicate.finish();
                     }
                 }
@@ -173,7 +266,7 @@ Controller.prototype = {
     displayin: function(){
         var self = this
         function print(text){
-            self.print(text)
+            self.println(text)
             self.instream.readln(print)
         }
         this.instream.readln(print)
@@ -181,32 +274,23 @@ Controller.prototype = {
     displayout: function(){
         var self = this
         function print(text){
-            self.print(text)
+            self.println(text)
             self.outstream.readln(print)
         }
         this.outstream.readln(print)
-    },
-       
-    display: function(){
-        var self = this
-        function print(text){
-            self.print(text)
-            self.outstream.readln(print)
-            self.instream.readln(print)
-        }
-        this.outstream.readln(print)
-        this.instream.readln(print)
-
     },
     print: function(text){
-        document.getElementById("finished").innerHTML += breakify(text)
+        document.getElementById("finished").innerHTML += breakify(text);
     },
-}
+    println: function(line){
+        this.print(line + "\n");
+    }
+};
 
 function UserIn(id){
     this.stream = new Stream()
-    this.id = id
-    var self = this;
+    this.id = id;
+    this.back = 0;
 }
 UserIn.prototype = {
     reset_input: function(){
@@ -232,6 +316,28 @@ UserIn.prototype = {
                 userin.pointer --;
             }
         },
+        38: function(userin){
+            if(userin.back < userin.stream.lines.length-1){
+                if(userin.back === -1){
+                    userin.store = userin.text
+                }
+                userin.back ++;
+                userin.text = userin.stream.lines[userin.stream.lines.length - userin.back - 1]
+                userin.pointer = userin.text.length;
+            }
+        },
+        40: function(userin){
+            if(userin.back > -1){
+                userin.back --;
+                if(userin.back === -1){
+                    userin.text = userin.store;
+                }
+                else{
+                    userin.text = userin.stream.lines[userin.stream.lines.length - userin.back]
+                }
+                userin.pointer = userin.text.length;
+            }
+        },
     },
     ctrl: {
         97: function(userin){
@@ -251,6 +357,8 @@ UserIn.prototype = {
         this.stream.writeln(this.text);
         this.text = "";
         this.pointer = 0;
+        this.back = -1
+
     },
     add: function(char){
         this.text = this.text.slice(0, this.pointer) +
@@ -300,4 +408,4 @@ setInterval(function(){
     pointer.style.color = pointer.style.color === "black"? "green": "black"
 
 }, 700);
-new Controller("term")
+new Controller("black", "green", "lightgreen", "term")

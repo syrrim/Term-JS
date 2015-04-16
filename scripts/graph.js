@@ -2,7 +2,8 @@ process.graph = function(args, stdin, stdout, stderr, comm){
     amount = parseInt(args[1]);
     data = {};
     length = 0;
-    max = [0, 0]
+    max = [0, 0];
+    stdin.readln(collect);
     function collect(line){
     	stderr.write(line)
 	if(comm.dead){comm.finish(0);return}

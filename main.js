@@ -200,6 +200,13 @@ function Controller(backColor, mainColor, errColor, id){
             e.preventDefault()
         }
     });
+    document.addEventListener("keydown", function(e){
+        e = e || window.event;
+        console.log(e)
+        if(self.press(e) || self.userin.press(e) || true){
+            e.preventDefault()
+        }
+    });
     /*$(document).on('paste','[contenteditable]',function(e) {
         e.preventDefault();
         var text = (e.originalEvent || e).clipboardData.getData('text/plain') || prompt('Paste something..');

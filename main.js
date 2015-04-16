@@ -418,7 +418,7 @@ UserIn.prototype = {
         if(this.special[e.keyCode]){
             this.special[e.keyCode](this);
         }
-        else if(e.keyCode){
+        else if(!e.charCode){
             return false
         }
         else if(e.ctrlKey){

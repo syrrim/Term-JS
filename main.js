@@ -368,7 +368,7 @@ UserIn.prototype = {
                     userin.text = userin.store;
                 }
                 else{
-                    text = userin.stream.lines[userin.stream.lines.length];
+                    text = userin.stream.lines[userin.stream.lines.length - userin.back - 1];
                     if(text)userin.text = text;
                 }
                 userin.pointer = userin.text.length;

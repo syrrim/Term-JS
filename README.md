@@ -13,7 +13,7 @@ The main ability you gain by having APIs in a CLI is the ability to pipe them to
 
     wordnik cool -a | playsound
 
-Which would play people pronouncing the word 'cool'. In this case it occurs three times, but you migh want it to only happen once. In that case it could be
+Which would play people pronouncing the word 'cool'. In this case it occurs four times, but you might want it to only happen once. In that case it could be
 
     wordnik cool -a | head 1 | playsound
 

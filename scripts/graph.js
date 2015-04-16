@@ -7,7 +7,7 @@ process.graph = function(args, stdin, stdout, stderr, comm){
     function collect(line){
     	stderr.writeln(line)
 	if(comm.dead){comm.finish(0);return}
-        values = data.split(":");
+        values = line.split(":");
         data[values[0]] = values[1]
 	max[0] = max[0] > values[0]? max[0] : values[0];
 	max[1] = max[1] > values[1]? max[1] : values[1];

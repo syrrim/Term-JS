@@ -22,8 +22,8 @@ process.graph = function(args, stdin, stdout, stderr, comm){
     function draw(){
     	stderr.writeln(JSON.stringify(data))
 	graph = [["|"]];
-	for(var i = 0; i < max[0]; i++){
-	    for(var j = 0; j < max[1]; j++){
+	for(var i = 0; i < max[1]; i++){
+	    for(var j = 0; j < max[0]; j++){
 		graph[i].push(" ");
 	    }
 	    graph.push(["|"]);

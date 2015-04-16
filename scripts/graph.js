@@ -5,7 +5,7 @@ process.graph = function(args, stdin, stdout, stderr, comm){
     max = [0, 0];
     stdin.readln(collect);
     function collect(line){
-    	stderr.write(line)
+    	stderr.writeln(line)
 	if(comm.dead){comm.finish(0);return}
         values = data.split(":");
         data[values[0]] = values[1]

@@ -4,7 +4,7 @@ window.process.playsound = function(args, stdin, stdout, stderr, comm){
             comm.finish(0)
             return;
         }
-        sound = new Audio(url)
+        sound = new Audio(url);
         console.log(sound);
         sound.oncanplaythrough = function(){
             sound.play()

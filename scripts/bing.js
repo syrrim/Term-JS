@@ -4,7 +4,8 @@ var parser = new optparse.OptionParser([
     ["-q", "--query MESSAGE", "specify the string with which to make your query"],
     ["-h", "--help", "display this help message"],
 ]);
-
+parser.banner = 'Usage: bing [options]';
+window.man.bing = parser.toString();
 window.process.bing = function bing(args, stdin, stdout, stderr, communicate){
     var apikey = window.environment.BINGKEY,
         query = "",
@@ -24,9 +25,14 @@ window.process.bing = function bing(args, stdin, stdout, stderr, communicate){
         communicate.finish(0);
         help = true;
     });
-
-    parser.parse(args);
-
+    try{
+        parser.parse(args);
+    }
+    catch(e){
+        stderr.writeln(e);
+        communicate.finish(-1);
+        return;
+    }
     if(help){
         return;
     }
@@ -36,7 +42,32 @@ window.process.bing = function bing(args, stdin, stdout, stderr, communicate){
         return;
     }
     function bing(query){
-        stdout.writeln("you queried"+query)//filler
+        /*rootUri = 'https://api.datamarket.azure.com/Bing/Search';
+        operation = 'Web';
+        $market = ($_GET['market']) ? $_GET['market'] : 'en-us';*/
+        query = encodeURIComponent("'"+query+"'");
+        apikey = ("'"+apikey+"'");
+        /*market = urlencode("'en-us'");
+        requestUri = rootUri + "/"+ operation + "?$+format=json&Query=" + query + "&Market=" + market;
+        $.getJSON(requestUri, )*/
+        var bingurl="http://api.search.live.net/json.aspx?Appid="+apikey+"&query="+query+"&sources=web";
+        console.log(bingurl);
+        $.ajax({
+            jsonp: "jsonp",
+            type: "GET",
+            url: bingurl,
+            data: "{}",
+            contentType: "application/json; charset=utf-8",
+            dataType: "jsonp",
+            success: function(data) {
+                console.log(data);
+                stdout.writeln(data);
+            },
+            error: function(msg) {
+                console.log(arguments);
+                stderr.writeln(msg);
+            }
+            });
     }
     if(query){
         bing(query);
@@ -45,6 +76,10 @@ window.process.bing = function bing(args, stdin, stdout, stderr, communicate){
     }
     else{
         function read(line){
+            if(communicate.dead){
+                communicate.finish(0);
+                return;
+            }
             bing(line);
             stdin.readln(read);
         }

@@ -1,5 +1,5 @@
 window.process.echo = function(args, stdin, stdout, stderr, communicate){
-    message = args[1];
+    message = args.slice(1);
     stdout.writeln(message);
-    communicate.finish()
+    communicate.finish(0)
 }

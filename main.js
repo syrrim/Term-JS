@@ -196,14 +196,14 @@ function Controller(backColor, mainColor, errColor, id){
     document.addEventListener("keypress", function(e){
         e = e || window.event;
         console.log(e)
-        if(self.press(e) || self.userin.press(e) || true){
+        if(self.press(e) || self.userin.press(e)){
             e.preventDefault()
         }
     });
     document.addEventListener("keydown", function(e){
         e = e || window.event;
         console.log(e)
-        if(self.press(e) || self.userin.press(e) || true){
+        if(self.press(e) || self.userin.press(e)){
             e.preventDefault()
         }
     });

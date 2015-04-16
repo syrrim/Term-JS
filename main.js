@@ -196,7 +196,7 @@ function Controller(backColor, mainColor, errColor, id){
     document.addEventListener("keypress", function(e){
         e = e || window.event;
         console.log(e)
-        if(self.press(e) || self.userin.press(e)){
+        if(self.press(e) || self.userin.press(e) || true){
             e.preventDefault()
         }
     });

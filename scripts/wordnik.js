@@ -16,25 +16,17 @@ var opt = [
     //["-E", "--etymologies", "Fetches etymology data"],//Doesn't seem to be implemented yet
     ["-a", "--audio", "Fetches audio metadata for a word."],
     ["-h", "--help", "Displays this help message"],
-    ["-c", "--canonical", "Will try to return the correct word root ('cats' -> 'cat'). Otherwise returns exactly what was requested."],
-]
-var parser = new optparse.OptionParser(opt);
-parser.banner = "Usage: wordnik [WORD] [OPTIONS]"
+    ["-c", "--canonical", "Will try to return the correct word root ('cats' -> 'cat'). Otherwise returns exactly what was requested."]
+];
+var parser = new window.optparse.OptionParser(opt);
+parser.banner = "Usage: wordnik [WORD] [OPTIONS]";
 window.process.wordnik = function(args, stdin, stdout, stderr, comm){
     var message = "",
         type = "",
         help = false,
         relationshipTypes = "",
-        canonical = false;
-    parser.on("help", function(){
-        stdout.writeln(parser.toString())
-        comm.finish(0);
-        return;
-    });
-    parser.on("canonical", function(){
-        canonical = true;
-    })
-    var n = null;
+        canonical = false,
+        n = null;
     for(var use in {"examples":n,"definitions":n, "topExample":n,
                     "pronunciations":n,"hyphenation":n,"frequency":n,
                     "phrases":n,"etymologies":n,"audio":n}){
@@ -42,6 +34,14 @@ window.process.wordnik = function(args, stdin, stdout, stderr, comm){
             type = name;
         });
     }
+    parser.on("help", function(){
+        stdout.writeln(parser.toString());
+        comm.finish(0);
+        return;
+    });
+    parser.on("canonical", function(){
+        canonical = true;
+    })
     parser.on("relatedWords", function(name, value){
         type = name;
         relationshipTypes = value;

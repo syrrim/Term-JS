@@ -414,7 +414,6 @@ UserIn.prototype = {
         this.pointer++;
     },
     press: function(e){
-        console.log(e)
         if(this.special[e.keyCode]){
             this.special[e.keyCode](this);
         }
@@ -447,6 +446,7 @@ UserIn.prototype = {
         }
         this.html += textify (this.text.slice(this.pointer+1));
         document.getElementById(this.id).innerHTML = this.html
+        document.getElementById("term").scrollTop = document.getElementById(this.id).offsetTop;
         return true
     }
 }

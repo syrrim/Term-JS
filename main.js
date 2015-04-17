@@ -223,6 +223,7 @@ Controller.prototype = {
         this.err.readln(err);
     },
     press: function(e){
+        if(e.ctrlKey || e.charCode == 99){console.log(e)}
         if(e.ctrlKey && e.charCode == 99){
             self.kill_job();
             return true;

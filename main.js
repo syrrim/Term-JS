@@ -408,7 +408,11 @@ UserIn.prototype = {
         this.text = "";
         this.pointer = 0;
         this.back = -1
-        this.stream.writeln(text);
+        try{
+            this.stream.writeln(text);
+        }catch(e){
+            console.log(e);
+        }
 
     },
     add: function(char){

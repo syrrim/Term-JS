@@ -62,16 +62,15 @@ Pipeline.prototype = {
             process = process.replace(/^ | $/g, "")
             args.push(splitQuotes(process, " "));
         }
-        var instream = stdin,
-        	outstream = new Stream();
+        var instream = stdin;
         for(var i = 0; i < args.length; i++){
-            this.add(args[i], instream.reader(), outstream, stdin);
-            instream = outstream;
-            if(i < args.length - 2){
+            if(i < args.length - 1){
                 outstream = new Stream();
             }else{
                 outstream = stdout;
             }
-        }
+            this.add(args[i], instream.reader(), outstream, stdin);
+            instream = outstream;
+}
     },
 };

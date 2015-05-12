@@ -259,7 +259,6 @@ Controller.prototype = {
         this.instream = instream.reader()
         this.displayin();
 		this.pipeline.start(line, instream, outstream, this.err.stream);
-		outstream.writeln("stuff");
         /*for(var i = 0; i < args.length; i++){
             //this.new_process(args[i], instream.reader(), outstream);
             this.pipeline.add(args[i], instream.reader(), outstream, this.err.stream);

@@ -1,5 +1,9 @@
 function splitQuotes(string, seperator){
-    return string.split(RegExp(seperator+"+(?=(?:(?:[^\"]*\"){2})*[^\"]*$)", "g"))
+    try{
+        return string.split(RegExp(seperator+"+(?=(?:(?:[^\"]*\"){2})*[^\"]*$)", "g"));
+    }catch(e){
+        return string;
+    }
 }
 function Or(string, callback){
     this.callback =

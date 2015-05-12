@@ -2,7 +2,7 @@ function splitQuotes(string, seperator){
     try{
         return string.split(RegExp(seperator+"+(?=(?:(?:[^\"]*\"){2})*[^\"]*$)", "g"));
     }catch(e){
-        return string;
+        return string.split(seperator);
     }
 }
 function Or(string, callback){

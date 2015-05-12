@@ -47,40 +47,28 @@ Pipeline.prototype = {
                 stderr.writeln(args[0] + ": command not found")
                 communicate.finish(-1)
             });
-        /*if(!window.process[args[0]]){
-            var path = window.environment.PATH.split(":"),
-                i = 0; //convoluted async for loop
-            function load(location){
-                var script = document.createElement("script");
-                script.src = location + args[0] + ".js"
-                script.onload = function(){
-                    window.process[args[0]](args, stdin, stdout, stderr, communicate);
-                }
-                script.onerror = function(){
-                    i ++;
-                    if(i<path.length){
-                        load(path[i])
-                    }
-                    else{
-                        stderr.writeln(args[0] + ": command not found")
-                        communicate.finish();
-                    }
-                }
-                document.getElementsByTagName("head")[0].appendChild(script);
-            }
-            if(i<path.length){
-                load(path[i])
-            }
-            else{
-                stderr.writeln("You seem to have nothing on your path. Consider runnning: \n        export PATH=scripts/");
-                stderr.writeln(args[0] + ": command not found");
-                communicate.finish();
-            }
-       }
-        else{
-            window.process[args[0]](args, stdin, stdout, stderr, communicate);
-        }*/
         self.comms.push(communicate)
 
+    },
+    start: function(line, stdin, stdout, stderr){
+        var processes = splitQuotes(line, "|");
+        var args = [];
+        for(var i = 0; i < processes.length; i++){
+            var process = processes[i]
+            process = process.replace(/^ | $/g, "")
+            args.push(splitQuotes(process, " "));
+        }
+        var instream = stdin,
+        	outstream = new Stream();
+        for(var i = 0; i < args.length; i++){
+            this.add(args[i], instream.reader(), outstream, stdin);
+            instream = outstream;
+            if(i < args.length - 2){
+                outstream = new Stream();
+            }else{
+                outstream = stdout;
+            }
+        }
+    }
     }
 };

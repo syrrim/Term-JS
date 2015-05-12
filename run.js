@@ -69,6 +69,5 @@ Pipeline.prototype = {
                 outstream = stdout;
             }
         }
-    }
-    }
+    },
 };

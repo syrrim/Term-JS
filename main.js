@@ -443,7 +443,7 @@ UserIn.prototype = {
                 else{
                     return false;
                 }
-            else{
+            }else{
             	console.log(e.keyCode)
                 if(this.ctrlKey[e.keyCode]){
                     this.ctrlKey[e.keyCode](this);

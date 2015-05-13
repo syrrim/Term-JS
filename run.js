@@ -10,7 +10,8 @@ function formatArgs(args){
 	for(var i = 0; i < args.length; i++){
 		var arg = args[i]
 		if(arg[0] === '"' && arg[arg.length-1] === '"'){
-			final.push(arg.slice(1, -1));
+			var string = arg.slice(1, -1);
+			var format = string.replace(/\$(\w+)/, function(whole, string){return window.environment[string]})
 		}else if(arg[0] === "'" && arg[arg.length-1] === "'"){
 			final.push(arg.slice(1, -1));
 		}else{

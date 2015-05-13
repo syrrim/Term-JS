@@ -435,7 +435,7 @@ UserIn.prototype = {
         }
         else if(e.ctrlKey){
         	console.log(e.ctrlKey)
-            if(e.charCode)
+            if(e.charCode){
             	console.log(e.charCode)
                 if(this.ctrl[e.charCode]){
                     this.ctrl[e.charCode](this);

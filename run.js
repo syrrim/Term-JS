@@ -11,7 +11,8 @@ function formatArgs(args){
 		var arg = args[i]
 		if(arg[0] === '"' && arg[arg.length-1] === '"'){
 			var string = arg.slice(1, -1);
-			var format = string.replace(/\$(\w+)/, function(whole, string){return window.environment[string]})
+			var format = string.replace(/\$(\w+)/, function(whole, string){return window.environment[string]});
+			final.push(format);
 		}else if(arg[0] === "'" && arg[arg.length-1] === "'"){
 			final.push(arg.slice(1, -1));
 		}else{

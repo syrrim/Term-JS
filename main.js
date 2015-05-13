@@ -434,7 +434,7 @@ UserIn.prototype = {
             return false
         }
         else if(e.ctrlKey){
-            if(e.charCode && ! e.keyCode)
+            if(e.charCode)
                 if(this.ctrl[e.charCode]){
                     this.ctrl[e.charCode](this);
                 }
@@ -442,8 +442,8 @@ UserIn.prototype = {
                     return false;
                 }
             else{
-                if(this.ctrlKey[e.charCode]){
-                    this.ctrlKey[e.charCode](this);
+                if(this.ctrlKey[e.keyCode]){
+                    this.ctrlKey[e.keyCode](this);
                 }
                 else{
                     return false;

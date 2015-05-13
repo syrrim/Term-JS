@@ -225,7 +225,7 @@ Controller.prototype = {
     },
     press: function(e){
         if(e.ctrlKey || e.charCode == 99){console.log(e)}
-        if(e.ctrlKey && e.charCode == 99){
+        if(e.ctrlKey && (e.charCode === 99 || e.charCode === 67)){
             self.kill_job();
             return true;
         }

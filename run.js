@@ -55,7 +55,7 @@ Pipeline.prototype = {
 
     },
     start: function(line, stdin, stdout, stderr){
-        var processes = splitQuotes(line, "|");
+        var processes = splitQuotes(line, "\\|");
         var args = [];
         for(var i = 0; i < processes.length; i++){
             var process = processes[i]

@@ -400,7 +400,13 @@ UserIn.prototype = {
             userin.pointer = userin.pointer + paste.length;
             userin.text = userin.text.slice(0, userin.pointer) + paste + userin.text.slice(userin.pointer);
         }
-        },
+    },
+    ctrlKey: {
+        65: function(u){u.ctrl[97](u)},
+        69: function(u){u.ctrl[101](u)},
+        85: function(u){u.ctrl[117](u)},
+        86: function(u){u.ctrl[118](u)},
+    },
     text: "",
     pointer: 0,
     finish: function(){
@@ -428,11 +434,21 @@ UserIn.prototype = {
             return false
         }
         else if(e.ctrlKey){
-            if(this.ctrl[e.charCode]){
-                this.ctrl[e.charCode](this);
-            }
+            if(e.charCode && ! e.keyCode)
+                if(this.ctrl[e.charCode]){
+                    this.ctrl[e.charCode](this);
+                }
+                else{
+                    return false;
+                }
             else{
-                return false;
+                if(this.ctrlKey[e.charCode]){
+                    this.ctrlKey[e.charCode](this);
+                }
+                else{
+                    return false;
+                }
+
             }
         }
         else if(e.metaKey){

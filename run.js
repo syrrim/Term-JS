@@ -5,9 +5,19 @@ function splitQuotes(string, seperator){
         return string.split(seperator);
     }
 }
-function Or(string, callback){
-    this.callback =
-    sections
+function formatArgs(args){
+	final = [];
+	for(var i = 0; i < args.length; i++){
+		var arg = args[i]
+		if(arg[0] === '"' && arg[arg.length-1] === '"'){
+			final.push(arg.slice(1, -1));
+		}else if(arg[0] === "'" && arg[arg.length-1] === "'"){
+			final.push(arg.slice(1, -1));
+		}else{
+			final.push(arg);
+		}
+	}
+	return final;
 }
 
 Pipeline = function(callback){
@@ -45,6 +55,7 @@ Pipeline.prototype = {
         var communicate = new Communicate(function(){
             self.death(id);
         })
+		console.log(args);
         get_script(args[0]).then(function(script){
                 script(args, stdin, stdout, stderr, communicate)
             }, function(err){
@@ -69,7 +80,7 @@ Pipeline.prototype = {
             }else{
                 outstream = stdout;
             }
-            this.add(args[i], instream.reader(), outstream, stdin);
+            this.add(formatArgs(args[i]), instream.reader(), outstream, stdin);
             instream = outstream;
 }
     },

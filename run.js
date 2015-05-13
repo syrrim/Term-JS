@@ -23,13 +23,8 @@ function formatArgs(args){
 Pipeline = function(callback){
     this.callback = callback;
     this.comms = [];
-
 }
 Pipeline.prototype = {
-    start: function(pipeline){
-
-
-    },
     kill: function(){
         for(var i = 0; i < this.comms.length; i ++){
             this.comms[i].dead = true;

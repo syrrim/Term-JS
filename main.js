@@ -60,6 +60,7 @@ File.prototype = {
         this.write(this.read() + text);
     }
 };
+
 window.process.export = function(args, stdin, stdout, stderr, communicate){
     var sides = args[1].split("="),
         name = sides[0],

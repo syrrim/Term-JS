@@ -28,7 +28,7 @@ parsers = {
     },
     flags: function(letters, words){
         return function(array, object){
-            while(1){
+            while(array.length){
                 if(array[0].slice(0, 2) === "--" && words[array[0].slice(2)]){
                     words[array[0].slice(2)](object);
                     array.shift();
@@ -60,15 +60,34 @@ parsers = {
         }
         return [doc, this.flags(letters, words)]; 
     },
+    optional: function(func){
+        return function(array, object){
+            try{
+                func(array, object)
+            }catch(e){}
+        }
+    },
 },
 
-Parser = (string, values){
+Parser = function(string, values){
     this.filters = [];
     this.string = string;
     this.doc = "USAGE: " + string + "\n\n";
-    var choices = string.match(/[^\s]+/g);
+    var choices = string.match(/[^\s\[\]]+|[\[\]]/g),
+        option = false;
     for(var i = 1; i < choices.length; i++){
-        this.filters.push(values[choices[i]][1])
+        if(choices[i] === "["){
+            option = true;
+            continue;
+        }if(choices[i] === "]"){
+            option = false;
+            continue;
+        }
+        console.log(choices[i], values)
+        if(option)
+            this.filters.push(parsers.optional(values[choices[i]][1]));
+        else
+            this.filters.push(values[choices[i]][1]);
         this.doc += choices[i] + ": " + values[choices[i]][0] + "\n";
     }
 };
@@ -82,10 +101,4 @@ Parser.prototype = {
         if(array.length)throw new Error("Too many args: " + array)
         return object;
     }
-}
-window.optparse = {
-    parsers = parsers,
-    Parser = Parser,
-    options = options,
-    
 }

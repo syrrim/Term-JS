@@ -60,6 +60,7 @@ File.prototype = {
         this.write(this.read() + text);
     }
 };
+
 window.process.export = function(args, stdin, stdout, stderr, communicate){
     var sides = args[1].split("="),
         name = sides[0],
@@ -224,7 +225,7 @@ Controller.prototype = {
     },
     press: function(e){
         if(e.ctrlKey || e.charCode == 99){console.log(e)}
-        if(e.ctrlKey && e.charCode == 99){
+        if(e.ctrlKey && (e.charCode === 99 || e.keyCode === 67)){
             self.kill_job();
             return true;
         }
@@ -399,7 +400,13 @@ UserIn.prototype = {
             userin.pointer = userin.pointer + paste.length;
             userin.text = userin.text.slice(0, userin.pointer) + paste + userin.text.slice(userin.pointer);
         }
-        },
+    },
+    ctrlKey: {
+        65: function(u){u.ctrl[97](u)},
+        69: function(u){u.ctrl[101](u)},
+        85: function(u){u.ctrl[117](u)},
+        86: function(u){u.ctrl[118](u)},
+    },
     text: "",
     pointer: 0,
     finish: function(){
@@ -427,11 +434,24 @@ UserIn.prototype = {
             return false
         }
         else if(e.ctrlKey){
-            if(this.ctrl[e.charCode]){
-                this.ctrl[e.charCode](this);
-            }
-            else{
-                return false;
+        	console.log(e.ctrlKey)
+            if(e.charCode){
+            	console.log(e.charCode)
+                if(this.ctrl[e.charCode]){
+                    this.ctrl[e.charCode](this);
+                }
+                else{
+                    return false;
+                }
+            }else{
+            	console.log(e.keyCode)
+                if(this.ctrlKey[e.keyCode]){
+                    this.ctrlKey[e.keyCode](this);
+                }
+                else{
+                    return false;
+                }
+
             }
         }
         else if(e.metaKey){

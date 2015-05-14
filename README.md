@@ -6,8 +6,7 @@ You can try it here: http://rawgit.com/syrrim/Term-JS/master/test.html
 It is mostly designed to emulate the functionality of bash, so it has several standard UNIX commands sush as echo and grep, 
 and bash shortcuts like ctrl-A or ctrl-U. 
 
-The main purpose was to allow access to web based APIs. So far, support only exists for wordnik, a bing command exists but 
-isn't functional. 
+The main purpose was to allow access to web based APIs. As such, there are currently commands for google and wordnik.
 
 The main ability you gain by having APIs in a CLI is the ability to pipe them together. For example, you can currently do
 

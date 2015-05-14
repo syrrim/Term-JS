@@ -88,7 +88,9 @@ filters = {
             var opt = options[i]
             letters[opt.letter] = opt.func;
             words[opt.word] = opt.func;
-            doc += "\n    -" + opt.letter + ", --" + opt.word + ": " + opt.doc;
+            doc += "\n    "+
+                opt.letter.length === 1 ? ("-" + opt.letter + ", "): "" + 
+                "--" + opt.word + ": " + opt.doc;
         }
         return [doc, this.flags(letters, words)]; 
     },

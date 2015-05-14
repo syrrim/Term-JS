@@ -1,7 +1,7 @@
 # Term-JS
 A terminal emulator that runs from a webpage.
 
-You can try it here: http://rawgit.com/syrrim/Term-JS/master/test.html
+You can try it here: http://rawgit.com/syrrim/Term-JS/master/main.html
 
 It is mostly designed to emulate the functionality of bash, so it has several standard UNIX commands sush as echo and grep, 
 and bash shortcuts like ctrl-A or ctrl-U. 

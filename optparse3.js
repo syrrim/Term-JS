@@ -4,39 +4,71 @@ function choose(obj, def){
     }
     return obj;
 }
-var options = {
+var coercers = {
+    identity: function(anything){
+        return anything;
+    },
+    int: function(string){
+        var int = parseInt(string);
+        if(isNaN(int))throw new Error(string + " cannot be parsed as an int");
+        return int
+    },
+    float: function(string){
+        var float = parseInt(string);
+        if(isNaN(float))throw new Error(string + " cannot be parsed as a float");
+        return float
+    },
+    date: function(string){
+        var date = new Date(string);
+        if(isNaN(date))throw new Error(string + " cannot be parsed as a date");
+        return date 
+    },
+},
+options = {
     set: function(name, letter, doc){
         return {word: name, letter: letter, doc: doc,
-                func: function(object){
+                func: function(array, object){
                     object[name] = true;
                 }};
     },
     enum: function(tag, position, name, letter, doc){
         return {word: name, letter: letter, doc: doc,
-                func: function(object){
+                func: function(array, object){
                     object[tag] = position;
                 }}
-    }
+    },
+    data: function(coerce, name, letter, doc){
+        return {word: name, letter: letter,
+                doc: doc, func: function(array, object){
+                       object[name] = coerce(array[1]);
+                       array.splice(1, 1);
+                   }
+               }
+    },
+    string: function(name, letter, doc){
+        return this.data(coercers.identity, name, letter, doc);
+    },
 },
-parsers = {
+filters = {
     position: function(name, coerce){
         var coerce = choose(coerce, function(n){return n});
         return function(array, object){
             if(!array.length)throw new Error("Not enough args for " + name);
-            object[name] = coerce(array.shift())
+            object[name] = coerce(array[0])
+            array.shift();
         }
     },
     flags: function(letters, words){
         return function(array, object){
             while(array.length){
                 if(array[0].slice(0, 2) === "--" && words[array[0].slice(2)]){
-                    words[array[0].slice(2)](object);
+                    words[array[0].slice(2)](array, object);
                     array.shift();
                 }else if(array[0][0] === "-"){
                     var letter = array[0].slice(1);
                     for(var l = 0; l < letter.length; l++){
                         if(letters[letter[l]]){
-                            letters[letter[l]](object);
+                            letters[letter[l]](array, object);
                         }else{
                             throw new Error("Flag '" + letter[l] + "' in -" + letter + " is invalid");
                         }
@@ -83,7 +115,6 @@ Parser = function(string, values){
             option = false;
             continue;
         }
-        console.log(choices[i], values)
         if(option)
             this.filters.push(parsers.optional(values[choices[i]][1]));
         else
@@ -101,4 +132,11 @@ Parser.prototype = {
         if(array.length)throw new Error("Too many args: " + array)
         return object;
     }
+}
+
+window.optparse3 = {
+    coercers: coercers,
+    options: options,
+    filters: filters,
+    Parser: Parser,
 }

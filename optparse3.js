@@ -14,7 +14,7 @@ var coercers = {
         return int
     },
     float: function(string){
-        var float = parseInt(string);
+        var float = parseFloat(string);
         if(isNaN(float))throw new Error(string + " cannot be parsed as a float");
         return float
     },

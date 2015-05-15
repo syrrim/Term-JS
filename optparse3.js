@@ -23,25 +23,30 @@ var coercers = {
         if(isNaN(date))throw new Error(string + " cannot be parsed as a date");
         return date 
     },
+    nonOption: function(string){
+        if(string[0] === "-")throw new Error(string + "is read as an option");
+        return string;
+    }
 },
 options = {
     set: function(name, letter, doc){
-        return {word: name, letter: letter, doc: doc,
+        return {word: name, letter: letter, doc: doc?doc:"turn on "+name,
                 func: function(array, object){
                     object[name] = true;
                 }};
     },
     enum: function(tag, position, name, letter, doc){
-        return {word: name, letter: letter, doc: doc,
+        return {word: name, letter: letter, doc: doc?doc:"set "+tag+" to "+position,
                 func: function(array, object){
                     object[tag] = position;
                 }}
     },
     data: function(coerce, name, letter, doc){
-        return {word: name, letter: letter,
-                doc: doc, func: function(array, object){
+        return {word: name, letter: letter,doc: doc?doc:"set "+name+"to argument", 
+        func: function(array, object){
                        object[name] = coerce(array[1]);
                        array.splice(1, 1);
+                       console.log(array)
                    }
                }
     },
@@ -52,11 +57,13 @@ options = {
 filters = {
     position: function(name, coerce){
         var coerce = choose(coerce, function(n){return n});
-        return function(array, object){
+        var func = function(array, object){
             if(!array.length)throw new Error("Not enough args for " + name);
-            object[name] = coerce(array[0])
+            object[name] = coerce(array[0]);
             array.shift();
         }
+        console.log(func);
+        return func
     },
     flags: function(letters, words){
         return function(array, object){
@@ -103,10 +110,11 @@ filters = {
     },
 },
 
-Parser = function(string, values){
+Parser = function(string, values, def){
     this.filters = [];
     this.string = string;
     this.doc = "USAGE: " + string + "\n\n";
+    this.def = choose(def, {}); //default is a keyword
     var choices = string.match(/[^\s\[\]]+|[\[\]]/g),
         option = false;
     for(var i = 1; i < choices.length; i++){
@@ -117,17 +125,18 @@ Parser = function(string, values){
             option = false;
             continue;
         }
-        if(option)
-            this.filters.push(parsers.optional(values[choices[i]][1]));
-        else
+        if(option){
+            this.filters.push(filters.optional(values[choices[i]][1]));
+        }else{
             this.filters.push(values[choices[i]][1]);
+        }
         this.doc += choices[i] + ": " + values[choices[i]][0] + "\n";
     }
 };
 Parser.prototype = {
     parse: function(args){
-        var array = args.slice(),
-            object = {};
+        var array = args.slice(1),
+            object = $.extend({}, this.def);
         for(var i = 0; i < this.filters.length; i++){
             this.filters[i](array, object);
         }

@@ -78,6 +78,18 @@ Pipeline.prototype = {
             process = process.replace(/^ | $/g, "")
             args.push(splitQuotes(process, " "));
         }
+        var outstream = stdout,
+            instream;
+        for(var i = args.length-1; i >= 0; i--){
+            if(i > 0){
+                instream = new Stream();
+            }else{
+                instream = stdin;
+            }
+            this.add(formatArgs(args[i]), instream, outstream, stderr);
+            outstream = instream;
+        }
+        /*
         var instream = stdin;
         for(var i = 0; i < args.length; i++){
             if(i < args.length - 1){
@@ -87,7 +99,7 @@ Pipeline.prototype = {
             }
             this.add(formatArgs(args[i]), instream, outstream, stderr);
             instream = outstream;
-        }
+        }*/
     },
     end: function(err){
         console.log(err.message);

@@ -57,7 +57,7 @@ window.process.google = function(args, stdin, stdout, stderr, comm){
             var options = parser.parse(args);
         }catch(e){
             stderr.writeln(e.message);
-            comm.finish(-1);
+            comm.finish(1);
             return;
         }
         if(options.help){

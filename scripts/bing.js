@@ -30,7 +30,7 @@ window.process.bing = function bing(args, stdin, stdout, stderr, communicate){
     }
     catch(e){
         stderr.writeln(e);
-        communicate.finish(-1);
+        communicate.finish(1);
         return;
     }
     if(help){
@@ -38,7 +38,7 @@ window.process.bing = function bing(args, stdin, stdout, stderr, communicate){
     }
     if(!apikey){
         stderr.writeln("bing: no apikey provided");
-        communicate.finish(-1);
+        communicate.finish(1);
         return;
     }
     function bing(query){

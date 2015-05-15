@@ -21,46 +21,54 @@ function formatArgs(args){
 	}
 	return final;
 }
-
+function bundle(stdin, stdout, stderr){
+    return {
+        read: function(callback){
+            stdin.read(callback);
+        },
+        readln: function(callback){
+            stdin.readln(callback);
+        },
+        write: function(text){
+            stdout.write(text);
+        },
+        writeln: function(line){
+            stdout.writeln(line);
+        },
+        err: function(text){
+            stderr.write(text);
+        },
+        errln: function(text){
+            stderr.writeln(text);
+        },
+        kill: function(err){
+            stdin.kill(err);
+        },
+    }
+}
 Pipeline = function(callback){
     this.callback = callback;
-    this.comms = [];
+    this.streams = [];
 }
 Pipeline.prototype = {
-    kill: function(){
-        for(var i = 0; i < this.comms.length; i ++){
-            this.comms[i].dead = true;
-        }
-        setTimeout(this.callback, 1);
-    },
-    death: function(id){
-        var dead = true;
-        for(var i = 0; i < this.comms.length; i ++){
-            if(i <= id){
-                this.comms[i].dead = true;
-            }
-            dead = this.comms[i].dead && dead;
-        }
-        if(dead){
-            setTimeout(this.callback, 1);
-        }
-
-    },
     add: function(args, stdin, stdout, stderr){
+        function end(err){
+            self.end(err);
+        }
         var self = this,
-            id = this.comms.length;
-        var communicate = new Communicate(function(){
-            self.death(id);
-        })
-		console.log(args);
+            stdin = stdin.reader(end);
+        self.streams.push(stdin);
         get_script(args[0]).then(function(script){
-                script(args, stdin, stdout, stderr, communicate)
+                try{
+                    script(args, bundle(stdin, stdout, stderr));
+                }catch(e){
+                    self.end(e);
+                }
             }, function(err){
-                stderr.writeln(args[0] + ": command not found")
-                communicate.finish(-1)
-            });
-        self.comms.push(communicate)
-
+                stderr.writeln(args[0] + ": command not found");
+                self.end(new NoCommand());
+            }
+        );
     },
     start: function(line, stdin, stdout, stderr){
         var processes = splitQuotes(line, "\\|");
@@ -77,8 +85,15 @@ Pipeline.prototype = {
             }else{
                 outstream = stdout;
             }
-            this.add(formatArgs(args[i]), instream.reader(), outstream, stdin);
+            this.add(formatArgs(args[i]), instream, outstream, stderr);
             instream = outstream;
-}
+        }
     },
+    end: function(err){
+        console.log(err.message);
+        for(var i = 0; i < this.streams.length; i++){
+            this.streams[i].kill();
+        }
+        this.callback();
+    }
 };

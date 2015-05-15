@@ -62,6 +62,8 @@ window.process.google = function(args, stdin, stdout, stderr, comm){
         }
         if(options.help){
             stdout.writeln(parser.doc);
+            comm.finish(0);
+            return;
         }
         function deal(query, complete){
             results(query, options.amount, options.sort).then(

@@ -69,7 +69,7 @@ window.process.google = function(args, stdin, stdout, stderr, comm){
             results(query, options.amount, options.sort).then(
                 function(json){
                     console.log(json.results)
-                    var attribute = {link: "url", 
+                    var attribute = {link: "unescapedUrl", 
                         content: "contentNoFormatting", 
                         title: "titleNoFormatting"}[options.output]
                     for(var i = 0; i < json.results.length; i++){

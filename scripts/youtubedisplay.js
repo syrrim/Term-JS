@@ -17,5 +17,6 @@ window.process.youtubedisplay = function(args, stdin, stdout, stderr, comm){
 			send(line);
 			stdin.readln(read);
 		}
+		stdin.readln(read);
 	}
 }

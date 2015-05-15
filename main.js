@@ -244,15 +244,6 @@ Controller.prototype = {
         })
     },
     start_job: function(line){
-        /*var processes = line.split("|");
-        var args = [];
-        for(var i = 0; i < processes.length; i++){
-            var process = processes[i]
-            process = process.replace(/[\n 	]+/g, " ")
-            process = process.replace(/^ | $/g, "")
-            args.push(process.split(" "));
-        }
-        var self = this;*/
         this.pipeline = new Pipeline(function(){self.get_job()});
         var instream = this.userin.reset_input(),
         	outstream = new Stream();
@@ -260,14 +251,6 @@ Controller.prototype = {
         this.instream = instream.reader()
         this.displayin();
 		this.pipeline.start(line, instream, outstream, this.err.stream);
-        /*for(var i = 0; i < args.length; i++){
-            //this.new_process(args[i], instream.reader(), outstream);
-            this.pipeline.add(args[i], instream.reader(), outstream, this.err.stream);
-            if(i < args.length - 1){
-                instream = outstream;
-                outstream = new Stream();
-            }
-        }*/
         this.displayout()
     },
     new_process: function(args, instream, outstream){

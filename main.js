@@ -350,6 +350,7 @@ UserIn.prototype = {
             userin.finish()
         },
         8: function(userin){
+            console.trace();
             userin.text = userin.text.slice(0, userin.pointer-1) +
                          userin.text.slice(userin.pointer, userin.text.length);
             if(userin.pointer > 0)userin.pointer --;

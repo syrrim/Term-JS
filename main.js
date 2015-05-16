@@ -222,13 +222,13 @@ function Controller(backColor, mainColor, errColor, id){
             e.preventDefault()
         }
     });
-    document.addEventListener("keydown", function(e){
+    /*document.addEventListener("keydown", function(e){
         e = e || window.event;
         console.log(e)
         if(self.press(e) || self.userin.press(e)){
             e.preventDefault()
         }
-    });
+    });*/
     /*$(document).on('paste','[contenteditable]',function(e) {
         e.preventDefault();
         var text = (e.originalEvent || e).clipboardData.getData('text/plain') || prompt('Paste something..');
@@ -352,7 +352,6 @@ UserIn.prototype = {
             userin.finish()
         },
         8: function(userin){
-            console.trace();
             userin.text = userin.text.slice(0, userin.pointer-1) +
                          userin.text.slice(userin.pointer, userin.text.length);
             if(userin.pointer > 0)userin.pointer --;

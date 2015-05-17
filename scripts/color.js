@@ -1,11 +1,7 @@
-window.process.color = function colorize(args, stdin, stdout, stderr, communicate){
+window.process.color = function colorize(args, io){
     function color(line){
-        if(communicate.dead){
-            communicate.finish(0);
-            return;
-        }
-        stdout.writeln("<span style='color:"+args[1]+"'>"+line+"</span>");
-        stdin.readln(color)
+        io.writeln("<span style='color:"+args[1]+"'>"+line+"</span>");
+        io.readln(color)
     }
-    stdin.readln(color)
+    io.readln(color)
 }

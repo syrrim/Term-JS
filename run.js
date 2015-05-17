@@ -21,7 +21,7 @@ function formatArgs(args){
 	}
 	return final;
 }
-function bundle(stdin, stdout, stderr){
+function bundle(stdin, stdout, stderr, end){
     return {
         read: function(callback){
             stdin.read(callback);
@@ -42,7 +42,7 @@ function bundle(stdin, stdout, stderr){
             stderr.writeln(text);
         },
         kill: function(err){
-            stdin.kill(err);
+            end(err);
         },
     }
 }
@@ -52,15 +52,16 @@ Pipeline = function(callback){
 }
 Pipeline.prototype = {
     add: function(args, stdin, stdout, stderr){
+        var id = this.streams.length;
         function end(err){
-            self.end(err);
+            self.end(err, id);
         }
         var self = this,
             stdin = stdin.reader(end);
         self.streams.push(stdin);
         get_script(args[0]).then(function(script){
                 try{
-                    script(args, bundle(stdin, stdout, stderr));
+                    script(args, bundle(stdin, stdout, stderr, end));
                 }catch(e){
                     self.end(e);
                 }
@@ -101,7 +102,7 @@ Pipeline.prototype = {
             instream = outstream;
         }*/
     },
-    end: function(err){
+    end: function(err, id){
         console.log(err.message);
         for(var i = 0; i < this.streams.length; i++){
             this.streams[i].kill();

@@ -11,11 +11,11 @@ Exit = function(code, message){
     this.message = message;
 }
 
-Complete = (function(){
+Success = (function(){
     return this.super(0, "Success");
 }).inherit(Exit)
 
-Fail = (function(arg1, arg2){
+Failure = (function(arg1, arg2){
     if(arg1 instanceof Number)
         var code = arg1,
             message = arg2;
@@ -28,7 +28,9 @@ Fail = (function(arg1, arg2){
 var fail = function(code, defmessage){
     return (function(message){
             this.super(code, message?message:defmessage);
-        }).inherit(Fail);
+        }).inherit(Failure);
 };
+WrongUsage = fail(64, "Improper Usage");
+IOError = fail(74, "IO Error");
 NoCommand = fail(127, "Command Not Found");
 Terminate = fail(130, "Process Terminated");

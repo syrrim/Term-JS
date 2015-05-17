@@ -73,11 +73,12 @@ window.process.reload = function(args, stdin, stdout, stderr, comm){
         window.process[args[i]] = null;
         get_script(args[i]);
     }
-    comm.finish(0);
+    throw new Complete();
 }
 window.man = {
     man: "Usage: man command\n\nDisplays information such as usage and output for 'command'.\nOnly available as provided by 'command'.",
     export: "Usage export VARIABLE=VALUE\n\nSets the environment variable named 'VARIABLE' to the string of 'VALUE'",
+    reload: "Usage reload command\n\nDeletes command and reloads it from saved.",
 };
 window.process.man = function(args, stdin, stdout, stderr, communicate){
     var process = args[1];
@@ -103,41 +104,61 @@ window.process.man = function(args, stdin, stdout, stderr, communicate){
         );
     }
 }
-function Communicate(finish){
-    this.finish = finish;
-};
-Communicate.prototype = {
-    dead: false,
-};
-function In(stream){
+function In(stream, end){
     this.stream = stream;
     this.index = 0;
     this.depth = 0;
+    this.end = end
+    this.killer = null;
 }
 In.prototype = {
+    wrap: function(callback){
+        var self = this;
+        return function(line){
+            if(self.end){
+                try{
+                    callback(line);
+                }catch(e){
+                    self.end(e);
+                }
+            }else{
+                callback(line)
+            }
+        }
+    },
     readln: function(callback){
+        if(this.killer){
+            throw this.killer
+        }
         if(this.index < this.stream.lines.length){
             this.index ++;
-            callback(this.stream.lines[this.index-1]);
+            this.wrap(callback)(this.stream.lines[this.index-1]);
         }
         else{
             this.index ++;
-            this.stream.line_listener.push(callback);
+            this.stream.line_listener.push(this.wrap(callback));
         }
     },
     read: function(callback){
+        if(this.killer){
+            throw this.killer
+        }
         if(this.index < this.stream.lines.length || this.depth < this.stream.line.length ){
             prevind = this.index;
             prevdepth = this.depth;
             this.index = this.stream.lines.length;
             this.depth = this.stream.line.length;
-            callback(this.stream.lines.slice(prevind).join("\n") + "\n" + this.stream.line.slice(prevdepth))
+            this.wrap(callback)(this.stream.lines.slice(prevind).join("\n") + "\n" + this.stream.line.slice(prevdepth));
+
         }
         else{
             this.index = this.stream.lines.length;
             this.depth = this.stream.line.length;
-            this.stream.listener.push(callback);
+            this.stream.listener.push(this.wrap(callback));
         }
+    },
+    kill: function(error){
+        this.killer = error;
     },
 };
 function Stream(){
@@ -173,8 +194,8 @@ Stream.prototype = {
         this.lines.push(this.line)
         this.line = ""
     },
-    reader: function(){
-        return new In(this);
+    reader: function(end){
+        return new In(this, end);
     },
 };
 
@@ -200,12 +221,13 @@ function Controller(backColor, mainColor, errColor, id){
             e.preventDefault()
         }
     });
-    document.addEventListener("keydown", function(e){
+    /*document.addEventListener("keydown", function(e){
         e = e || window.event;
+        console.log(e)
         if(self.press(e) || self.userin.press(e)){
             e.preventDefault()
         }
-    });
+    });*/
     /*$(document).on('paste','[contenteditable]',function(e) {
         e.preventDefault();
         var text = (e.originalEvent || e).clipboardData.getData('text/plain') || prompt('Paste something..');
@@ -232,7 +254,7 @@ Controller.prototype = {
         return false
     },
     kill_job: function(){
-        this.pipeline.kill();
+        this.pipeline.end(new Terminate());
     },
     get_job: function(){
         this.print("$")

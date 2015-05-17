@@ -20,7 +20,7 @@ var opt = [
 ];
 var parser = new window.optparse.OptionParser(opt);
 parser.banner = "Usage: wordnik [WORD] [OPTIONS]";
-window.process.wordnik = function(args, stdin, stdout, stderr, comm){
+window.process.wordnik = function(args, io){
     var message = "",
         type = "",
         help = false,
@@ -35,9 +35,8 @@ window.process.wordnik = function(args, stdin, stdout, stderr, comm){
         });
     }
     parser.on("help", function(){
-        stdout.writeln(parser.toString());
-        comm.finish(0);
-        return;
+        io.writeln(parser.toString());
+        throw new Success();
     });
     parser.on("canonical", function(){
         canonical = true;
@@ -52,31 +51,26 @@ window.process.wordnik = function(args, stdin, stdout, stderr, comm){
     try{
         parser.parse(args.slice(1))
     }catch(e){
-        stderr.writeln(e);
-        comm.finish(-1);
-        return;
+        io.errln(e);
+        throw new WrongUsage(e.message);
     }
     if(!help){
         if(message){
             fetch(type, message, function(value){
                 console.log(value, type);
-                resolve(value, type, stdout);
-                comm.finish(0)
+                resolve(value, type);
+                io.kill(new Success())
             })
         }
         else{
             function wordnik(line){
-                if(comm.dead){
-                    comm.finish(0)
-                    return;
-                }
                 fetch(type, line, function(value){
                     console.log(value, type);
-                    resolve(value, type, stdout);
+                    resolve(value, type);
                 })
-                stdin.readln(wordnik)
+                io.readln(wordnik)
             }
-            stdin.readln(wordnik)
+            io.readln(wordnik)
         }
     }
     function fetch(type, message, callback) {
@@ -94,8 +88,8 @@ window.process.wordnik = function(args, stdin, stdout, stderr, comm){
             callback(array)
             })
         .error (function (status) {
-            stderr.writeln(type + ": url == " + url + ",\nerror == " + JSON.stringify (status, undefined, 4));
-            comm.finish(-1);
+            io.errln(type + ": url == " + url + ",\nerror == " + JSON.stringify (status, undefined, 4));
+            io.kill(new IOError())
             });
      }
      function resolve(obj, type){
@@ -103,7 +97,7 @@ window.process.wordnik = function(args, stdin, stdout, stderr, comm){
             case "frequency":
                 freq = obj.frequency;
                 for(var i = 0; i < freq.length; i++){
-                    stdout.writeln(freq[i].year + ":" + freq[i].count);
+                    io.writeln(freq[i].year + ":" + freq[i].count);
                 }
                 break;
             case "relatedWords":
@@ -112,39 +106,39 @@ window.process.wordnik = function(args, stdin, stdout, stderr, comm){
                     relation = obj[i].relationshipType;
                     for(var j = 0; j < obj[i].words.length; j++){
                         console.log(obj[i].words[j]);
-                        stdout.writeln((relationshipTypes? "" : relation + ":") + obj[i].words[j]);
+                        io.writeln((relationshipTypes? "" : relation + ":") + obj[i].words[j]);
                     }
                 }
                 break;
             case "audio":
                 for(var i = 0; i < obj.length; i++){
-                    stdout.writeln(obj[i].fileUrl);
+                    io.writeln(obj[i].fileUrl);
                 }
                 break;
             case "pronunciations":
                 for(var i = 0; i < obj.length; i++){
-                    stdout.writeln(obj[i].rawType + ":" + obj[i].raw)
+                    io.writeln(obj[i].rawType + ":" + obj[i].raw)
                 };
                 break;
             case "examples":
                 for(var i = 0; i < obj.examples.length; i++){
-                    stdout.writeln(obj.examples[i].text)
+                    io.writeln(obj.examples[i].text)
                 }
                 break;
             case "phrases":
                 for(var i = 0; i < obj.length; i++){
-                    stdout.writeln(obj[i].gram1);
+                    io.writeln(obj[i].gram1);
                 }
                 break;
             case "hyphenation":
             case "definitions":
                 for(var i = 0; i < obj.length; i++){
-                    stdout.writeln(obj[i].text)
+                    io.writeln(obj[i].text)
                 };
                 break;
             default:
                 for(var item in obj){
-                    stdout.writeln(item+":"+JSON.stringify(obj[item], undefined, 4))
+                    io.writeln(item+":"+JSON.stringify(obj[item], undefined, 4))
                 }
                 break;
          }

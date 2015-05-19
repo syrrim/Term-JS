@@ -124,7 +124,7 @@ process.mkdir = function(args, io){
 }
 process.ls = function(args, io){
     try{
-        var dir = dirs.navigate(environment.CWD, args[1])
+        var dir = args[1]?dirs.navigate(environment.CWD, args[1]):environment.CWD
         io.write(dirs.getDir(dir).read());
     }catch(e){
         io.errln(e.message);

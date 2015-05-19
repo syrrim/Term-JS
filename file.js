@@ -82,6 +82,8 @@ dirs = {
             final = this.parent(orig);
         else if(path.slice(0, 3) === "../")
             final = this.navigate(this.parent(orig), path.slice(3))
+        else
+            final = orig;
         if(this.valid(final)){
             return final;
         }
@@ -118,6 +120,16 @@ process.mkdir = function(args, io){
     }
     try{dirs.addDir(environment.CWD, path);}
     catch(e){throw new Failure(e.message);}
+    throw new Success();
+}
+process.ls = function(args, io){
+    try{
+        var dir = dirs.navigate(environment.CWD, args[1])
+        io.write(dirs.getDir(dir).read());
+    }catch(e){
+        io.errln(e.message);
+        throw new Failure(e.message);
+    }
     throw new Success();
 }
 PseudoFile = function(){

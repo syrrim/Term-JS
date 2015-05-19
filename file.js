@@ -104,7 +104,7 @@ process.cd = function(args, io){
     var path = "/";
     if(args[1]){
         try{
-            path = qualify(args[1]);
+            path = dirs.qualify(args[1]);
         }catch(e){
             io.errln(e.message);
             throw new Failure(e.message);

@@ -103,6 +103,7 @@ process.cd = function(args, io){
         }
     }
     environment.CWD = path;
+    throw new Success();
 }
 process.mkdir = function(args, io){
     if(!args[1]){
@@ -117,6 +118,7 @@ process.mkdir = function(args, io){
     }
     try{dirs.addDir(environment.CWD, path);}
     catch(e){throw new Failure(e.message);}
+    throw new Success();
 }
 PseudoFile = function(){
     this.arr = [];

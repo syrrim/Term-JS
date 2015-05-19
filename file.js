@@ -68,7 +68,7 @@ dirs = {
             throw new Error("Invalid file name '"+ name + "'");
         }
     },
-    navigate(orig, path){
+    navigate: function(orig, path){
         var final;
         if(path[0] === "/")
             final = path;

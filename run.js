@@ -2,7 +2,7 @@
 get_script = function(name){
     return new Promise(function(resolve, reject){
         if(!window.process[name]){
-            var path = window.environment.PATH.split(":"),
+            var path = window.environment.PATH.split(" "), // spaces are invalid in URIs
                 i = 0; //begin convoluted async for loop
             function load(location){
                 var script = document.createElement("script");

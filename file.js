@@ -115,8 +115,8 @@ process.mkdir = function(args, io){
     }else if(args[1].indexOf("/") !== args[1].length-1){
         io.errln("invalid directory name");
     }
-    try dirs.addDir(environment.CWD, path);
-    catch(e) throw new Failure(e.message);
+    try{dirs.addDir(environment.CWD, path);}
+    catch(e){throw new Failure(e.message);}
 }
 PseudoFile = function(){
     this.arr = [];

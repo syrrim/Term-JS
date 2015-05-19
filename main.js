@@ -5,13 +5,10 @@
 
 
 //Object for storing possible commands
-window.process = {
-};
+window.process = process?process:{};
 //stores environment variables
-window.environment = {
-    PATH: "scripts/"
-};
-
+window.environment = environment?environment:{};
+environment.PATH = "scripts/";
 window.process.export = function(args, stdin, stdout, stderr, communicate){
     var sides = args[1].split("="),
         name = sides[0],
@@ -130,13 +127,13 @@ Controller.prototype = {
 		this.pipeline.start(line, instream, outstream, this.err.stream);
         this.displayout()
     },
-    new_process: function(args, instream, outstream){
+    /*new_process: function(args, instream, outstream){
         self = this;
         var communicate = new Communicate(function(){
             self.kill_job();
         })
         if(!window.process[args[0]]){
-            path = window.environment.PATH.split(":");
+            path = window.environment.PATH.split(" "); //spaces are invalid in URIs
             var i = 0;
             function load(location){
                 script = document.createElement("script");
@@ -164,7 +161,7 @@ Controller.prototype = {
             window.process[args[0]](args, instream, outstream, communicate);
         }
 
-    },
+    },*/
     displayin: function(){
         var self = this
         function print(text){

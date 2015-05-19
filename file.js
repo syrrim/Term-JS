@@ -1,3 +1,104 @@
+File = function(name){
+    this.name = name
+}
+File.prototype = {
+    write: function(text){
+        localStorage.setItem(this.name, text);
+    },
+    append: function(text){
+        var old = this.read();
+        this.write((old?old:"") + text);
+    },
+    read: function(){
+        return localStorage.getItem(this.name);
+    },
+    readLnAt: function(indice){
+        return this.read().split("\n")[indice];
+    },
+    readLnFrom: function(indice){
+        return this.read().split("\n").slice(indice);
+    },
+    get length(){
+        return (this.read().match(/\n/g) || []).length
+    },
+};
+dirs = {
+    valid: function(path){
+        return path[0] === "/" && localStorage.getItem(path) !== null
+    },
+    validDir: function(path){
+        return this.valid(path) && path[path.length-1] === "/"
+    },
+    validFile: function(path){
+        return this.valid(path) && path[path.length-1] !== "/"
+    },
+    parent: function(path){
+        if(path[path.length-1] === "/")
+            path = path.slice(0, -1);
+        return path.slice(0, path.lastIndexOf("/"))
+    },
+    get: function(path){
+        if(valid(path)){
+            return new File(path)
+        }else{
+            throw new Error("File or Directory at '"+path+"' does not exist");
+        }
+    },
+    _add: function(parent, name){
+        if(parent[parent.length-1] === "/" && this.valid(parent)){
+            (new File(parent)).append("\n"+name);
+            var f = new File(parent + name);
+            f.append("");
+            return f;
+        }else{
+            throw new Error("Directory '"+parent+"' does not exist");
+        }
+    },
+    addDir: function(parent, name){
+        if(name.indexOf("/") === name.length-1){
+            return this._add(parent, name);
+        }else{
+            throw new Error("Invalid directory name '"+ name + "'");
+        }
+    },
+    addFile: function(parent, name){
+        if(name.indexOf("/") === -1){
+            return this._add(parent, name);
+        }else{
+            throw new Error("Invalid file name '"+ name + "'");
+        }
+    },
+    navigate(orig, path){
+        var final;
+        if(path[0] === "/")
+            final = path;
+        else if(path[0] !== ".")
+            final = orig + path;
+        else if(path === ".")
+            final = orig;
+        else if(path.slice(0, 2) === "./")
+            final = orig + path.slice(2);
+        else if(path === "..")
+            final = this.parent(orig);
+        else if(path.slice(0, 3) === "../")
+            final = this.navigate(this.parent(orig), path.slice(3))
+        if(this.valid(final)){
+            return final;
+        }
+        throw Error("invalid path '" + final + "' from '"+orig+"'+'"+path+"'");
+    },
+}
+new File("/").append("");
+window.process = window.process?window.process:{};
+window.environment = window.environment?window.environment:{};
+environment.CWD = "/" // no user folders or other files, no need for home directory.
+process.cd = function(args, io){
+    var path = "/";
+    if(args[1]){
+        path = dirs.navigate(environment.CWD, args[1]);
+    }
+    environment.CWD = path;
+}
 PseudoFile = function(){
     this.arr = [];
 }
@@ -22,29 +123,6 @@ PseudoFile.prototype = {
     },
 };
 
-File = function(name){
-    this.name = name
-}
-File.prototype = {
-    write: function(text){
-        localStorage.setItem(this.name, text);
-    },
-    append: function(text){
-        this.write(this.read() + text);
-    },
-    read: function(){
-        return localStorage.getItem(this.name);
-    },
-    readLnAt: function(indice){
-        return this.read().split("\n")[indice];
-    },
-    readLnFrom: function(indice){
-        return this.read().split("\n").slice(indice);
-    },
-    get length(){
-        return (this.read().match(/\n/g) || []).length
-    },
-};
 function In(stream, end){
     this.stream = stream;
     this.index = 0;

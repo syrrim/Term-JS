@@ -95,9 +95,28 @@ environment.CWD = "/" // no user folders or other files, no need for home direct
 process.cd = function(args, io){
     var path = "/";
     if(args[1]){
-        path = dirs.navigate(environment.CWD, args[1]);
+        try{
+            path = dirs.navigate(environment.CWD, args[1]);
+        }catch(e){
+            io.errln(e.message);
+            throw new Failure(e.message);
+        }
     }
     environment.CWD = path;
+}
+process.mkdir = function(args, io){
+    if(!args[1]){
+        io.errln("No directory specified")
+        throw new WrongUsage("No Directory Specified");
+    }
+    var path = args[1]
+    if(args[1].indexOf("/") === -1){
+        path += "/"
+    }else if(args[1].indexOf("/") !== args[1].length-1){
+        io.errln("invalid directory name");
+    }
+    try dirs.addDir(environment.CWD, path);
+    catch(e) throw new Failure(e.message);
 }
 PseudoFile = function(){
     this.arr = [];

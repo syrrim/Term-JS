@@ -1,3 +1,39 @@
+//Promise that gives either a command, or an error if it can't find the command
+get_script = function(name){
+    return new Promise(function(resolve, reject){
+        if(!window.process[name]){
+            var path = window.environment.PATH.split(":"),
+                i = 0; //begin convoluted async for loop
+            function load(location){
+                var script = document.createElement("script");
+                script.src = location + name + ".js"
+                script.onload = function(){
+                    resolve(window.process[name])
+                }
+                script.onerror = function(){
+                    i ++;
+                    if(i<path.length){
+                        load(path[i])
+                    }
+                    else{
+                        reject(Error("File didn't exist anywhere along the PATH"))
+                    }
+                }
+                document.getElementsByTagName("head")[0].appendChild(script);
+            }
+            if(i<path.length){
+                load(path[i])
+            }
+            else{
+                reject(Error("There's nothing in the PATH variable"))
+            }
+        }
+        else{
+            resolve(window.process[name])
+        }
+});
+}
+
 function splitQuotes(string, seperator){
     try{
         return string.split(RegExp(seperator+"+(?=(?:(?:[^\"]*\"){2})*[^\"]*$)", "g"));

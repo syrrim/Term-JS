@@ -125,7 +125,8 @@ process.mkdir = function(args, io){
 process.ls = function(args, io){
     try{
         var dir = args[1]?dirs.navigate(environment.CWD, args[1]):environment.CWD
-        io.write(dirs.getDir(dir).read());
+        if(!dirs.isValidDir(dir))throw new Failure("invalid directory '"+dir+"'")
+        io.write(dirs.get(dir).read());
     }catch(e){
         io.errln(e.message);
         throw new Failure(e.message);

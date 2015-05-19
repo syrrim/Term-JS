@@ -38,7 +38,7 @@ dirs = {
         return path.slice(0, path.lastIndexOf("/"))
     },
     get: function(path){
-        if(valid(path)){
+        if(this.valid(path)){
             return new File(path)
         }else{
             throw new Error("File or Directory at '"+path+"' does not exist");

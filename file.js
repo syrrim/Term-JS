@@ -96,7 +96,7 @@ process.cd = function(args, io){
     var path = "/";
     if(args[1]){
         try{
-            path = dirs.navigate(environment.CWD, args[1]);
+            path = dirs.navigate(environment.CWD, args[1][args[1].length-1]==="/"?args[1]:args[1]+"/");
         }catch(e){
             io.errln(e.message);
             throw new Failure(e.message);

@@ -1,5 +1,5 @@
 /*
- * Javascript Terminal Emulator by the venerable Gerhuyy.
+ * Javascript Terminal Emulator.
  * Use at your own risk.
  */
 

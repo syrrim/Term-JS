@@ -81,7 +81,7 @@ dirs = {
         else if(path === "..")
             final = this.parent(orig);
         else if(path.slice(0, 3) === "../")
-            final = this.navigate(this.parent(orig), path.slice(3))
+            final = this.navigate(this.parent(orig) + "/", path.slice(3))
         else
             final = orig;
         if(this.valid(final)){

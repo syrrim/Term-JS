@@ -89,6 +89,9 @@ dirs = {
         }
         throw Error("invalid path '" + final + "' from '"+orig+"'+'"+path+"'");
     },
+    toDir: function(name){
+        return name? (name[name.length-1] === "/"? name : (name + "/")) :"";
+    }
 }
 new File("/").append("");
 window.process = window.process?window.process:{};
@@ -98,7 +101,7 @@ process.cd = function(args, io){
     var path = "/";
     if(args[1]){
         try{
-            path = dirs.navigate(environment.CWD, args[1][args[1].length-1]==="/"?args[1]:args[1]+"/");
+            path = dirs.navigate(environment.CWD, dirs.toDir(args[1]));
         }catch(e){
             io.errln(e.message);
             throw new Failure(e.message);
@@ -112,19 +115,13 @@ process.mkdir = function(args, io){
         io.errln("No directory specified")
         throw new WrongUsage("No Directory Specified");
     }
-    var path = args[1]
-    if(args[1].indexOf("/") === -1){
-        path += "/"
-    }else if(args[1].indexOf("/") !== args[1].length-1){
-        io.errln("invalid directory name");
-    }
-    try{dirs.addDir(environment.CWD, path);}
+    try{dirs.addDir(environment.CWD, dirs.toDir(args[1]));}
     catch(e){throw new Failure(e.message);}
     throw new Success();
 }
 process.ls = function(args, io){
     try{
-        var dir = args[1]?dirs.navigate(environment.CWD, args[1]):environment.CWD
+        var dir = args[1]?dirs.navigate(environment.CWD, dirs.toDir(args[1])):environment.CWD
         if(!dirs.validDir(dir))throw new Failure("invalid directory '"+dir+"'")
         io.write(dirs.get(dir).read());
     }catch(e){

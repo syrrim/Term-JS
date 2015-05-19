@@ -73,19 +73,6 @@ function Controller(backColor, mainColor, errColor, id){
             e.preventDefault()
         }
     });
-    /*document.addEventListener("keydown", function(e){
-        e = e || window.event;
-        console.log(e)
-        if(self.press(e) || self.userin.press(e)){
-            e.preventDefault()
-        }
-    });*/
-    /*$(document).on('paste','[contenteditable]',function(e) {
-        e.preventDefault();
-        var text = (e.originalEvent || e).clipboardData.getData('text/plain') || prompt('Paste something..');
-        window.document.execCommand('insertText', false, text);
-        console.log(text);
-    });*/
     this.errorReport()
     this.get_job()
 };
@@ -109,7 +96,7 @@ Controller.prototype = {
         this.pipeline.end(new Terminate());
     },
     get_job: function(){
-        this.print("$")
+        this.print(window.environment.CWD + "$")
         var self = this
         this.userin.stream = this.prompt.stream
         this.prompt.readln(function(line){
@@ -127,41 +114,6 @@ Controller.prototype = {
 		this.pipeline.start(line, instream, outstream, this.err.stream);
         this.displayout()
     },
-    /*new_process: function(args, instream, outstream){
-        self = this;
-        var communicate = new Communicate(function(){
-            self.kill_job();
-        })
-        if(!window.process[args[0]]){
-            path = window.environment.PATH.split(" "); //spaces are invalid in URIs
-            var i = 0;
-            function load(location){
-                script = document.createElement("script");
-                script.src = location + args[0] + ".js"
-                script.onload = function(){
-                    window.process[args[0]](args, instream, outstream, self.err.stream, communicate);
-                }
-                script.onerror = function(){
-                    i ++;
-                    if(i<path.lenght){
-                        load(path[i])
-                    }
-                    else{
-                        self.println(args[0] + ": command not found")
-                        communicate.finish();
-                    }
-                }
-                document.getElementsByTagName("head")[0].appendChild(script);
-            }
-            if(i<path.length){
-                load(path[i])
-            }
-       }
-        else{
-            window.process[args[0]](args, instream, outstream, communicate);
-        }
-
-    },*/
     displayin: function(){
         var self = this
         function print(text){

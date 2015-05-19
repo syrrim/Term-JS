@@ -91,6 +91,9 @@ dirs = {
     },
     toDir: function(name){
         return name? (name[name.length-1] === "/"? name : (name + "/")) :"";
+    },
+    qualify: function(input){
+        return this.navigate(environment.CWD, this.toDir(input));
     }
 }
 new File("/").append("");
@@ -101,7 +104,7 @@ process.cd = function(args, io){
     var path = "/";
     if(args[1]){
         try{
-            path = dirs.navigate(environment.CWD, dirs.toDir(args[1]));
+            path = qualify(args[1]);
         }catch(e){
             io.errln(e.message);
             throw new Failure(e.message);
@@ -121,7 +124,7 @@ process.mkdir = function(args, io){
 }
 process.ls = function(args, io){
     try{
-        var dir = args[1]?dirs.navigate(environment.CWD, dirs.toDir(args[1])):environment.CWD
+        var dir = args[1]?dirs.qualify(args[1]):environment.CWD
         if(!dirs.validDir(dir))throw new Failure("invalid directory '"+dir+"'")
         io.write(dirs.get(dir).read());
     }catch(e){

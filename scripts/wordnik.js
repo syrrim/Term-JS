@@ -35,7 +35,10 @@ window.process.wordnik = function(args, io){
         io.errln(e.message);
         throw new WrongUsage(e.message);
     }
-    if(!opts.help){
+    if(opts.help){
+        io.writeln(parser.doc);
+        throw new Success();
+    }else{
         if(opts.query){
             fetch(opts.type, opts.query, function(value){
                 console.log(value, opts.type);

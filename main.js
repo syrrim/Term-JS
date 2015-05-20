@@ -175,7 +175,8 @@ UserIn.prototype = {
                     userin.store = userin.text
                 }
                 userin.back ++;
-                userin.text = userin.stream.lines[userin.stream.lines.length - userin.back - 1]
+                console.log(userin.stream.lines, userin.stream.lines.length - userin.back - 1);
+                userin.text = userin.stream.lines[userin.stream.lines.length - userin.back - 1];
                 userin.pointer = userin.text.length;
             }
         },

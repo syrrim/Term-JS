@@ -26,7 +26,17 @@ var coercers = {
     nonOption: function(string){
         if(string[0] === "-")throw new Error(string + "is read as an option");
         return string;
-    }
+    },
+    choice: function(/*choices*/){
+        var choices = arguments;
+        return function(string){
+            for(var i = 0; i < choices.length; i++){
+                if(choices[i] == string){// doubls equals equality, will transfer from string to int/bool/etc.
+                    return choices[i];
+                }
+            }
+        }
+    },
 },
 options = {
     set: function(name, letter, doc){

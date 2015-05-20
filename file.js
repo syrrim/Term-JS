@@ -1,4 +1,4 @@
-File = function(name){
+var File = function(name){
     this.name = name
 }
 File.prototype = {
@@ -22,7 +22,7 @@ File.prototype = {
         return (this.read().match(/\n/g) || []).length
     },
 };
-dirs = {
+window.dirs = {
     valid: function(path){
         return path[0] === "/" && localStorage.getItem(path) !== null
     },
@@ -38,7 +38,7 @@ dirs = {
         return path.slice(0, path.lastIndexOf("/"))
     },
     get: function(path){
-        if(this.valid(path)){
+        if(this.valid(this.parent(path))){
             return new File(path)
         }else{
             throw new Error("File or Directory at '"+path+"' does not exist");
@@ -46,7 +46,7 @@ dirs = {
     },
     _add: function(parent, name){
         if(parent[parent.length-1] === "/" && this.valid(parent)){
-            (new File(parent)).append("\n"+name);
+            (new File(parent)).append(name+"\n");
             var f = new File(parent + name);
             f.append("");
             return f;
@@ -132,6 +132,16 @@ process.ls = function(args, io){
         throw new Failure(e.message);
     }
     throw new Success();
+}
+process.rm = function(args, io){
+    if(args === ["rm", "/", "-rf", "--no-preserve-root"]){
+        localStorage.clear();
+        new File("/").append("");
+        throw new Success();
+    }else{
+        io.errln("Invalid command");
+        throw new WrongUsgae("Invalid command '"+args+"'");
+    }
 }
 PseudoFile = function(){
     this.arr = [];

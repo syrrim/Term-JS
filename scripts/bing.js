@@ -1,40 +1,32 @@
-var parser = new optparse.OptionParser([
-    ["-a", "--apionce KEY", "specify a bing search api key to use this time"],
-    ["-A", "--apialways KEY", "specify the bing search api key to use this session"],
-    ["-q", "--query MESSAGE", "specify the string with which to make your query"],
-    ["-h", "--help", "display this help message"],
-]);
-parser.banner = 'Usage: bing [options]';
-window.man.bing = parser.toString();
+op = optparse3;
+var parser = new op.Parser(
+    "bing [QUERY] OPTIONS",
+    {
+        QUERY: ["Terms to search with. If blank, takes from stdin.", op.filters.position("query", op.coercers.nonOption)],
+        OPTIONS: op.filters.options([
+            op.options.data(op.coercers.identity, "apikey", "a", "The API key to use"),
+            op.options.set("help", "h", "Display this help message"),
+            ])
+    },
+    {
+        help: false,
+        apikey: window.environment.BINGKEY,
+    },
+);
+window.man.bing = parser.doc;
 window.process.bing = function bing(args, io){
-    var apikey = window.environment.BINGKEY,
-        query = "",
-        help = false;
-    parser.on("apionce", function(name, value){
-        apikey = value;
-    });
-    parser.on("apialways", function(name, value){
-        apikey = value;
-        window.environment.BINGKEY = value;
-    });
-    parser.on("query", function(name, value){
-        query = value;
-    });
-    parser.on('help', function() {
-        help = true;
-    });
     try{
-        parser.parse(args);
+        opts = parser.parse(args);
     }
     catch(e){
         io.errln(e);
         throw new WrongUsage(e.message)
     }
-    if(help){
+    if(opts.help){
         io.writeln(parser.toString());
         throw new Success();
     }
-    if(!apikey){
+    if(!opts.apikey){
         io.errln("bing: no apikey provided");
         throw new WrongUsage("No api key");
     }
@@ -42,12 +34,11 @@ window.process.bing = function bing(args, io){
         /*rootUri = 'https://api.datamarket.azure.com/Bing/Search';
         operation = 'Web';
         $market = ($_GET['market']) ? $_GET['market'] : 'en-us';*/
-        query = encodeURIComponent("'"+query+"'");
-        apikey = encodeURIComponent(apikey)
-        /*market = urlencode("'en-us'");
-        requestUri = rootUri + "/"+ operation + "?$+format=json&Query=" + query + "&Market=" + market;
-        $.getJSON(requestUri, )*/
-        var bingurl="http://api.search.live.net/json.aspx?Appid="+apikey+"&query="+query+"&sources=web";
+        var query = encodeURIComponent("'"+query+"'"),
+            apikey = encodeURIComponent(opts.apikey),
+            /*market = urlencode("'en-us'"),
+            requestUri = rootUri + "/"+ operation + "?$+format=json&Query=" + query + "&Market=" + market,*/
+            var bingurl="http://api.search.live.net/json.aspx?Appid="+apikey+"&query="+query+"&sources=web";
         console.log(bingurl);
         $.ajax({
             jsonp: "jsonp",
@@ -59,7 +50,8 @@ window.process.bing = function bing(args, io){
             success: function(data) {
                 console.log(data);
                 io.writeln(data);
-                if(!query)io.readln(bing);
+                if(!opts.query)io.readln(bing);
+                else throw new Success();
             },
             error: function(msg) {
                 console.log(arguments);
@@ -68,9 +60,8 @@ window.process.bing = function bing(args, io){
             }
             });
     }
-    if(query){
-        bing(query);
-        throw new Success();
+    if(opts.query){
+        bing(opts.query);
     }
     else{
         io.readln(bing);

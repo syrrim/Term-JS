@@ -16,9 +16,9 @@ var parser = new op.Parser(
             op.options.enum("type", "frequency", "frequency", "f", "Returns word usage over time"),
             op.options.enum("type", "phrases", "phrases", "P", "Fetches bi-gram phrases for a word"),
             op.options.enum("type", "audio", "audio", "a", "Fetches audio metadata for a word."),
-            op.options.data(op.coercers.choice.apply(window, relations), "relation", "R", "The type of relation to use for relatedWords. one of "+relations)
+            op.options.data(op.coercers.choice.apply(window, relations), "relation", "R", "The type of relation to use for relatedWords. one of "+relations),
             op.options.set( "help", "h", "Displays this help message"),
-            op.options.set( "canonical", "c", "Will try to return the correct word root ('cats' -> 'cat'). Otherwise returns exactly what was requested.")
+            op.options.set( "canonical", "c", "Will try to return the correct word root ('cats' -> 'cat'). Otherwise returns exactly what was requested."),
             ]),
     },
     {
@@ -27,7 +27,7 @@ var parser = new op.Parser(
         help: false,
         canonical: false,
         relation: "synonym",
-    })
+    });
 window.process.wordnik = function(args, io){
     try{
         opts = parser.parse(args)

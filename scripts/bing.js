@@ -6,7 +6,7 @@ var parser = new optparse.OptionParser([
 ]);
 parser.banner = 'Usage: bing [options]';
 window.man.bing = parser.toString();
-window.process.bing = function bing(args, stdin, stdout, stderr, communicate){
+window.process.bing = function bing(args, io){
     var apikey = window.environment.BINGKEY,
         query = "",
         help = false;
@@ -21,32 +21,29 @@ window.process.bing = function bing(args, stdin, stdout, stderr, communicate){
         query = value;
     });
     parser.on('help', function() {
-        stdout.writeln(parser.toString());
-        communicate.finish(0);
         help = true;
     });
     try{
         parser.parse(args);
     }
     catch(e){
-        stderr.writeln(e);
-        communicate.finish(-1);
-        return;
+        io.errln(e);
+        throw new WrongUsage(e.message)
     }
     if(help){
-        return;
+        io.writeln(parser.toString());
+        throw new Success();
     }
     if(!apikey){
-        stderr.writeln("bing: no apikey provided");
-        communicate.finish(-1);
-        return;
+        io.errln("bing: no apikey provided");
+        throw new WrongUsage("No api key");
     }
     function bing(query){
         /*rootUri = 'https://api.datamarket.azure.com/Bing/Search';
         operation = 'Web';
         $market = ($_GET['market']) ? $_GET['market'] : 'en-us';*/
         query = encodeURIComponent("'"+query+"'");
-        apikey = ("'"+apikey+"'");
+        apikey = encodeURIComponent(apikey)
         /*market = urlencode("'en-us'");
         requestUri = rootUri + "/"+ operation + "?$+format=json&Query=" + query + "&Market=" + market;
         $.getJSON(requestUri, )*/
@@ -61,28 +58,21 @@ window.process.bing = function bing(args, stdin, stdout, stderr, communicate){
             dataType: "jsonp",
             success: function(data) {
                 console.log(data);
-                stdout.writeln(data);
+                io.writeln(data);
+                if(!query)io.readln(bing);
             },
             error: function(msg) {
                 console.log(arguments);
-                stderr.writeln(msg);
+                io.errln(msg);
+                io.kill(new Failure())
             }
             });
     }
     if(query){
         bing(query);
-        communicate.finish(0);
-        return;
+        throw new Success();
     }
     else{
-        function read(line){
-            if(communicate.dead){
-                communicate.finish(0);
-                return;
-            }
-            bing(line);
-            stdin.readln(read);
-        }
-        stdin.readln(read);
+        io.readln(bing);
     }
 }

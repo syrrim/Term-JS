@@ -1,16 +1,15 @@
-window.process.head = function(args, stdin, stdout, stderr, comm){
-    var amount = args[1] !== "" ? args[1] : 10,
+window.process.head = function(args, io){
+    var amount = isNaN(parseInt(args[1]))? 10 : parseInt(args[1]),
         i = 0;
-    function run(){
-        if(i<amount && !comm.dead){
-            stdin.readln(function(line){
-                stdout.writeln(line);
-                run()})
+    function read(line){
+        console.log(1, amount)
+        if(i<amount){
+            io.writeln(line);
+            io.readln(read);
             i++;
-        }
-        else{
-            comm.finish(0);
+        }else{
+            throw new Success();
         }
     }
-    run();
+    io.readln(read);
 }

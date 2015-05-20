@@ -1,66 +1,14 @@
 /*
- * Javascript Terminal Emulator by the venerable Gerhuyy.
+ * Javascript Terminal Emulator.
  * Use at your own risk.
  */
 
 
 //Object for storing possible commands
-window.process = {
-};
+window.process = process?process:{};
 //stores environment variables
-window.environment = {
-    PATH: "scripts/"
-};
-//Promise that gives either a command, or an error if it can't find the command
-get_script = function(name){
-    return new Promise(function(resolve, reject){
-        if(!window.process[name]){
-            var path = window.environment.PATH.split(":"),
-                i = 0; //begin convoluted async for loop
-            function load(location){
-                var script = document.createElement("script");
-                script.src = location + name + ".js"
-                script.onload = function(){
-                    resolve(window.process[name])
-                }
-                script.onerror = function(){
-                    i ++;
-                    if(i<path.length){
-                        load(path[i])
-                    }
-                    else{
-                        reject(Error("File didn't exist anywhere along the PATH"))
-                    }
-                }
-                document.getElementsByTagName("head")[0].appendChild(script);
-            }
-            if(i<path.length){
-                load(path[i])
-            }
-            else{
-                reject(Error("There's nothing in the PATH variable"))
-            }
-        }
-        else{
-            resolve(window.process[name])
-        }
-});
-}
-File = function(name){
-    this.name = name
-}
-File.prototype = {
-    write: function(text){
-        localStorage.setItem(this.name, text);
-    },
-    read: function(){
-        return localStorage.getItem(this.name);
-    },
-    append: function(text){
-        this.write(this.read() + text);
-    }
-};
-
+window.environment = environment?environment:{};
+environment.PATH = "scripts/";
 window.process.export = function(args, stdin, stdout, stderr, communicate){
     var sides = args[1].split("="),
         name = sides[0],
@@ -73,11 +21,12 @@ window.process.reload = function(args, stdin, stdout, stderr, comm){
         window.process[args[i]] = null;
         get_script(args[i]);
     }
-    comm.finish(0);
+    throw new Complete();
 }
 window.man = {
     man: "Usage: man command\n\nDisplays information such as usage and output for 'command'.\nOnly available as provided by 'command'.",
     export: "Usage export VARIABLE=VALUE\n\nSets the environment variable named 'VARIABLE' to the string of 'VALUE'",
+    reload: "Usage reload command\n\nDeletes command and reloads it from saved.",
 };
 window.process.man = function(args, stdin, stdout, stderr, communicate){
     var process = args[1];
@@ -103,82 +52,6 @@ window.process.man = function(args, stdin, stdout, stderr, communicate){
         );
     }
 }
-function Communicate(finish){
-    this.finish = finish;
-};
-Communicate.prototype = {
-    dead: false,
-};
-function In(stream){
-    this.stream = stream;
-    this.index = 0;
-    this.depth = 0;
-}
-In.prototype = {
-    readln: function(callback){
-        if(this.index < this.stream.lines.length){
-            this.index ++;
-            callback(this.stream.lines[this.index-1]);
-        }
-        else{
-            this.index ++;
-            this.stream.line_listener.push(callback);
-        }
-    },
-    read: function(callback){
-        if(this.index < this.stream.lines.length || this.depth < this.stream.line.length ){
-            prevind = this.index;
-            prevdepth = this.depth;
-            this.index = this.stream.lines.length;
-            this.depth = this.stream.line.length;
-            callback(this.stream.lines.slice(prevind).join("\n") + "\n" + this.stream.line.slice(prevdepth))
-        }
-        else{
-            this.index = this.stream.lines.length;
-            this.depth = this.stream.line.length;
-            this.stream.listener.push(callback);
-        }
-    },
-};
-function Stream(){
-    this.lines = [];
-    this.line = "";
-    this.line_listener = [];
-    this.listener = [];
-
-};
-Stream.prototype = {
-    write: function(text){
-        var lines = text.split("\n")
-        for(var i = 0; i < lines.length-1; i++){
-            this.line += lines[i]
-            this.endln()
-        }
-        this.line += lines[lines.length-1]
-        var callbacks = this.listener;
-        this.listener = [];
-        for(var i = 0; i < callbacks.length; i++){
-            callbacks[i](text)
-        }
-    },
-    writeln: function(text){
-        this.write(text+"\n")
-    },
-    endln: function(){
-        var line_listener = this.line_listener;
-        this.line_listener = [];
-        for(var i = 0; i < line_listener.length; i++){
-            line_listener[i](this.line);
-        }
-        this.lines.push(this.line)
-        this.line = ""
-    },
-    reader: function(){
-        return new In(this);
-    },
-};
-
-
 
 function Controller(backColor, mainColor, errColor, id){
     this.backColor = backColor;
@@ -200,18 +73,6 @@ function Controller(backColor, mainColor, errColor, id){
             e.preventDefault()
         }
     });
-    document.addEventListener("keydown", function(e){
-        e = e || window.event;
-        if(self.press(e) || self.userin.press(e)){
-            e.preventDefault()
-        }
-    });
-    /*$(document).on('paste','[contenteditable]',function(e) {
-        e.preventDefault();
-        var text = (e.originalEvent || e).clipboardData.getData('text/plain') || prompt('Paste something..');
-        window.document.execCommand('insertText', false, text);
-        console.log(text);
-    });*/
     this.errorReport()
     this.get_job()
 };
@@ -232,10 +93,10 @@ Controller.prototype = {
         return false
     },
     kill_job: function(){
-        this.pipeline.kill();
+        this.pipeline.end(new Terminate());
     },
     get_job: function(){
-        this.print("$")
+        this.print(window.environment.CWD + "$")
         var self = this
         this.userin.stream = this.prompt.stream
         this.prompt.readln(function(line){
@@ -252,41 +113,6 @@ Controller.prototype = {
         this.displayin();
 		this.pipeline.start(line, instream, outstream, this.err.stream);
         this.displayout()
-    },
-    new_process: function(args, instream, outstream){
-        self = this;
-        var communicate = new Communicate(function(){
-            self.kill_job();
-        })
-        if(!window.process[args[0]]){
-            path = window.environment.PATH.split(":");
-            var i = 0;
-            function load(location){
-                script = document.createElement("script");
-                script.src = location + args[0] + ".js"
-                script.onload = function(){
-                    window.process[args[0]](args, instream, outstream, self.err.stream, communicate);
-                }
-                script.onerror = function(){
-                    i ++;
-                    if(i<path.lenght){
-                        load(path[i])
-                    }
-                    else{
-                        self.println(args[0] + ": command not found")
-                        communicate.finish();
-                    }
-                }
-                document.getElementsByTagName("head")[0].appendChild(script);
-            }
-            if(i<path.length){
-                load(path[i])
-            }
-       }
-        else{
-            window.process[args[0]](args, instream, outstream, communicate);
-        }
-
     },
     displayin: function(){
         var self = this

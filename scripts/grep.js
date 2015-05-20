@@ -1,19 +1,14 @@
-window.process.grep = function(args, stdin, stdout, stderr, communicate){
+window.process.grep = function(args, io){
     var search = args[1]
     if(!search){
-        stderr.writeln("no search string specified")
-        communicate.finish(-1);
-        return;
+        io.errln("no search string specified")
+        throw new WrongUsage("No Search String");
     }
     function grep(line){
-        if(communicate.dead){
-            communicate.finish(0);
-            return;
-        }
         if(line.match(search)){
-            stdout.writeln(line);
+            io.writeln(line);
         }
-        stdin.readln(grep)
+        io.readln(grep)
     }
-    stdin.readln(grep)
+    io.readln(grep)
 }

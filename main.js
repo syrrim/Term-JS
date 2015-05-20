@@ -296,4 +296,4 @@ setInterval(function(){
     pointer.style.color = pointer.style.color === BACK? FORE: BACK
 
 }, 700);
-new Controller(BACK, FORE, "red", "term")
+window.controller = new Controller(BACK, FORE, "red", "term")

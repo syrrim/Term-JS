@@ -87,7 +87,7 @@ window.process.wordnik = function(args, io){
                     relation = obj[i].relationshipType;
                     for(var j = 0; j < obj[i].words.length; j++){
                         console.log(obj[i].words[j]);
-                        io.writeln((relationshipTypes? "" : relation + ":") + obj[i].words[j]);
+                        io.writeln(obj[i].words[j]);
                     }
                 }
                 break;

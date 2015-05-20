@@ -33,10 +33,12 @@ window.dirs = {
         return this.valid(path) && path[path.length-1] !== "/"
     },
     parent: function(path){
+        if(path[path.length-1] === "/")
+            return path.split("/").slice(0, -2).join("/");
         return path.split("/").slice(0, -1).join("/");
     },
     get: function(path){
-        if(path === "/" || this.valid(this.parent(path))){
+        if(path === "/" || this.valid(path)){
             return new File(path)
         }else{
             throw new Error("File or Directory at '"+path+"' does not exist");

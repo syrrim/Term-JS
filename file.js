@@ -132,13 +132,13 @@ process.ls = function(args, io){
     throw new Success();
 }
 process.rm = function(args, io){
-    if(args === ["rm", "/", "-rf", "--no-preserve-root"]){
+    if(args+"" === ""+["rm", "/", "-rf", "--no-preserve-root"]){
         localStorage.clear();
         new File("/").append("");
         throw new Success();
     }else{
         io.errln("Invalid command");
-        throw new WrongUsgae("Invalid command '"+args+"'");
+        throw new WrongUsage("Invalid command '"+args+"'");
     }
 }
 PseudoFile = function(){

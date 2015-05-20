@@ -24,7 +24,7 @@ File.prototype = {
 };
 window.dirs = {
     valid: function(path){
-        return path[0] === "/" && localStorage.getItem(path) !== null
+        return path[0] === "/" && new File(path).read() !== null
     },
     validDir: function(path){
         return this.valid(path) && path[path.length-1] === "/"
@@ -100,6 +100,27 @@ new File("/").append("");
 window.process = window.process?window.process:{};
 window.environment = window.environment?window.environment:{};
 environment.CWD = "/" // no user folders or other files, no need for home directory.
+op = optparse3;
+op.coercers.file = function(text){
+    var path = dirs.navigate(environment.CWD, text);
+    if(dirs.validFile(path)){
+        return dirs.get(path);
+    }else{
+        throw new Error("not a file '"+path+"'");
+    }
+};
+op.coercers.dir = function(text){
+    var path = dirs.navigate(environment.CWD, text);
+    if(dirs.validDir(path)){
+        return dirs.get(path);
+    }else{
+        throw new Error("Not a directory '"+path+"'");
+    }
+
+}
+op.coercers.path = function(text){
+    return dirs.navigate(environment.CWD, text);
+}
 process.cd = function(args, io){
     var path = "/";
     if(args[1]){

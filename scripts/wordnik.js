@@ -1,7 +1,12 @@
 var baseUrl = "http://api.wordnik.com/v4/word.json/";
 var apiKey = "a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5"; //demo key from developer.wordnik.com
 var op = optparse3;
-var relations = ["synonym"]
+var relations =["synonym","antonym", "variant", 
+    "equivalent", "cross-reference", "related-word",
+    "rhyme", "form", "etymologically-related-term", 
+    "hypernym", "hyponym", "inflected-form",
+    "primary", "same-context", "verb-form", 
+    "verb-stem"]
 var parser = new op.Parser(
     "wordnik [QUERY] OPTIONS",
     {
@@ -16,7 +21,8 @@ var parser = new op.Parser(
             op.options.enum("type", "frequency", "frequency", "f", "Returns word usage over time"),
             op.options.enum("type", "phrases", "phrases", "P", "Fetches bi-gram phrases for a word"),
             op.options.enum("type", "audio", "audio", "a", "Fetches audio metadata for a word."),
-            op.options.data(op.coercers.choice.apply(window, relations), "relation", "R", "The type of relation to use for relatedWords. one of "+relations),
+            op.options.data(op.coercers.choice.apply(window, relations), "relation", "R", "The type of relation to use for relatedWords. \n"+
+                    "       One of "+relations),
             op.options.set( "help", "h", "Displays this help message"),
             op.options.set( "canonical", "c", "Will try to return the correct word root ('cats' -> 'cat'). Otherwise returns exactly what was requested."),
             ]),

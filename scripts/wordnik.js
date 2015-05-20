@@ -1,72 +1,53 @@
-/*var script = document.createElement("script");
-script.src = "scripts/wordnik/swagger-client.js"
-document.getElementsByTagName("head")[0].appendChild(script);*/
-
 var baseUrl = "http://api.wordnik.com/v4/word.json/";
 var apiKey = "a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5"; //demo key from developer.wordnik.com
-var opt = [
-    ["-e", "--examples", "Returns examples for a word"],
-    ["-d", "--definitions", "Return definitions for a word"],
-    ["-t", "--topExample", "Returns a top example for a word"],
-    ["-r", "--relatedWords [relationship]", "Given a word as a string, returns relationships from the Word Graph"],
-    ["-p", "--pronunciations", "Returns text pronunciations for a given word"],
-    ["-H", "--hyphenation", "Returns syllable information for a word"],
-    ["-f", "--frequency", "Returns word usage over time"],
-    ["-P", "--phrases", "Fetches bi-gram phrases for a word"],
-    //["-E", "--etymologies", "Fetches etymology data"],//Doesn't seem to be implemented yet
-    ["-a", "--audio", "Fetches audio metadata for a word."],
-    ["-h", "--help", "Displays this help message"],
-    ["-c", "--canonical", "Will try to return the correct word root ('cats' -> 'cat'). Otherwise returns exactly what was requested."]
-];
-var parser = new window.optparse.OptionParser(opt);
-parser.banner = "Usage: wordnik [WORD] [OPTIONS]";
+var op = optparse3;
+var relations = ["synonym"]
+var parser = new op.Parser(
+    "wordnik [QUERY] OPTIONS",
+    {
+        QUERY: ["The word or phrase to query. If missing, takes from stdin.", op.filters.position("query", op.coercers.nonOption)],
+        OPTIONS: op.filters.options([
+            op.options.enum("type", "examples", "examples", "e", "Returns examples for a word"),
+            op.options.enum("type", "definitions", "definitions", "d", "Return definitions for a word"),
+            op.options.enum("type", "topExample", "topExample", "t", "Returns a top example for a word"),
+            op.options.enum("type", "relatedWords", "relatedWords", "r", "Given a word as a string, returns relationships from the Word Graph"),
+            op.options.enum("type", "pronunciations", "pronunciations", "p", "Returns text pronunciations for a given word"),
+            op.options.enum("type", "hyphenation", "hyphenation", "H", "Returns syllable information for a word"),
+            op.options.enum("type", "frequency", "frequency", "f", "Returns word usage over time"),
+            op.options.enum("type", "phrases", "phrases", "P", "Fetches bi-gram phrases for a word"),
+            op.options.enum("type", "audio", "audio", "a", "Fetches audio metadata for a word."),
+            op.options.data(op.coercers.choice.apply(window, relations), "relation", "R", "The type of relation to use for relatedWords. one of "+relations)
+            op.options.set( "help", "h", "Displays this help message"),
+            op.options.set( "canonical", "c", "Will try to return the correct word root ('cats' -> 'cat'). Otherwise returns exactly what was requested.")
+            ]),
+    },
+    {
+        type: "definitions",
+        query: null,
+        help: false,
+        canonical: false,
+        relation: "synonym",
+    })
 window.process.wordnik = function(args, io){
-    var message = "",
-        type = "",
-        help = false,
-        relationshipTypes = "",
-        canonical = false,
-        n = null;
-    for(var use in {"examples":n,"definitions":n, "topExample":n,
-                    "pronunciations":n,"hyphenation":n,"frequency":n,
-                    "phrases":n,"etymologies":n,"audio":n}){
-        parser.on(use, function(name){
-            type = name;
-        });
-    }
-    parser.on("help", function(){
-        io.writeln(parser.toString());
-        throw new Success();
-    });
-    parser.on("canonical", function(){
-        canonical = true;
-    })
-    parser.on("relatedWords", function(name, value){
-        type = name;
-        relationshipTypes = value;
-    })
-    parser.on(0, function(value){
-        message = value;
-    })
     try{
-        parser.parse(args.slice(1))
+        opts = parser.parse(args)
     }catch(e){
-        io.errln(e);
+        io.errln(e.message);
         throw new WrongUsage(e.message);
     }
-    if(!help){
-        if(message){
-            fetch(type, message, function(value){
-                console.log(value, type);
-                resolve(value, type);
+    if(!opts.help){
+        if(opts.query){
+            fetch(opts.type, opts.query, function(value){
+                console.log(value, opts.type);
+                resolve(value, opts.type);
                 io.kill(new Success())
             })
         }
         else{
             function wordnik(line){
-                fetch(type, line, function(value){
-                    console.log(value, type);
-                    resolve(value, type);
+                fetch(opts.type, line, function(value){
+                    console.log(value, opts.type);
+                    resolve(value, opts.type);
                 })
                 io.readln(wordnik)
             }
@@ -74,9 +55,9 @@ window.process.wordnik = function(args, io){
         }
     }
     function fetch(type, message, callback) {
-    	var url = baseUrl + message + "/" + type + "?useCanonical=" + canonical + "&api_key=" + apiKey;
-    	if (relationshipTypes){
-    	    url += "&relationshipTypes="+relationshipTypes;
+    	var url = baseUrl + message + "/" + type + "?useCanonical=" + opts.canonical + "&api_key=" + apiKey;
+    	if (opts.relation){
+    	    url += "&relationshipTypes="+opts.relation;
     	}
         var jxhr = $.ajax ({
             url: url,

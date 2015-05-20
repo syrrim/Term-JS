@@ -217,7 +217,8 @@ function Controller(backColor, mainColor, errColor, id){
 };
 Controller.prototype = {
     errorReport: function(){
-        function err(line){
+        var self = this;
+		function err(line){
             self.println("<span style='color:"+self.errColor+"'>"+line+"</span>");
             self.err.readln(err);
         }

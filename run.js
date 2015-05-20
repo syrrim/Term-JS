@@ -77,7 +77,7 @@ Pipeline.prototype = {
             }else{
                 outstream = stdout;
             }
-            this.add(formatArgs(args[i]), instream.reader(), outstream, stdin);
+            this.add(formatArgs(args[i]), instream.reader(), outstream, stderr);
             instream = outstream;
 }
     },

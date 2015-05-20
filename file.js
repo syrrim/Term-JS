@@ -33,9 +33,7 @@ window.dirs = {
         return this.valid(path) && path[path.length-1] !== "/"
     },
     parent: function(path){
-        if(path[path.length-1] === "/")
-            path = path.slice(0, -1);
-        return path.slice(0, path.lastIndexOf("/"))
+        return path.split("/").slice(0, -1).join("/");
     },
     get: function(path){
         if(path === "/" || this.valid(this.parent(path))){

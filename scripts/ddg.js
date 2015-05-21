@@ -38,9 +38,11 @@ process.ddg = function(args, io){
                 for(var i = 0; i < R.length; i++){
                     if(R[i].Result)
                         io.writeln(R[i].Result);
-                    /*else{
-                        for(var j = 0; j < R[i].Topics.length)
-                    }*/
+                    else if(R[i].Topic){
+                        for(var j = 0; j < R[i].Topics.length; j++){
+                            io.writeln(R[i].Topic[j].Result);
+                        }
+                    }
                 }
                 io.writeln()//JSON.stringify(reply, undefined, 4));
                 callback();

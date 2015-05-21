@@ -69,10 +69,10 @@ options = {
 },
 filters = {
     position: function(name, coerce){
-        var coerce = choose(coerce, function(n){return n});
+        var coercer = coerce? coerce: coercers.identity;
         var func = function(array, object){
             if(!array.length)throw new Error("Not enough args for " + name);
-            object[name] = coerce(array[0]);
+            object[name] = coercer(array[0]);
             array.shift();
         }
         console.log(func);

@@ -6,13 +6,15 @@ parser = new op.Parser(
     {
         QUERY: ["string to search with", op.filters.position("query", op.coercers.nonOption)],
         OPTIONS: op.filters.options([
-            op.options.set("html", "H", "view HTML formated results"),
-            op.options.set("help", "h", "view this help page"),
+            op.options.set("disambig", "d", "Show disambiguation results"),
+            op.options.set("html", "H", "Show HTML formated results"),
+            op.options.set("help", "h", "View this help page"),
         ]),
     },
     {
         html: false,
         help: false,
+        disambig: false,
     }
 )
 
@@ -28,7 +30,13 @@ process.ddg = function(args, io){
         throw new Success();
     }
     function ddg(query, callback){
-        var url = "http://api.duckduckgo.com/?format=json&t=TermJS&q="+encodeURI(query);
+        var url = "http://api.duckduckgo.com/? + [
+                "format=json",
+                "t=TermJS",
+                "q="+encodeURI(query),
+                "no_html="+(opts.html?0:1),
+                "skip_disambig="+(opts.disambig?0:1),
+                ].join("&")
         $.ajax({
             url: url,
             dataType: "jsonp",
@@ -44,7 +52,6 @@ process.ddg = function(args, io){
                         }
                     }
                 }
-                io.writeln()//JSON.stringify(reply, undefined, 4));
                 callback();
             },
             error: function(){

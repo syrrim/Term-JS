@@ -45,7 +45,7 @@ process.ddg = function(args, io){
         })
     }
     if(opts.query){
-        ddg(query, function(results){
+        ddg(opts.query, function(results){
             io.kill(new Success());
         })
     }

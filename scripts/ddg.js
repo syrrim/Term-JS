@@ -28,7 +28,7 @@ process.ddg = function(args, io){
         throw new Success();
     }
     function ddg(query, callback){
-        var url = "http://api.duckduckgo.com/?t=TermJS&q="+encodeURI(query);
+        var url = "http://api.duckduckgo.com/?format=json&t=TermJS&q="+encodeURI(query);
         $.ajax({
             url: url,
             dataType: "jsonp",

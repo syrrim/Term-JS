@@ -40,7 +40,7 @@ process.ddg = function(args, io){
             error: function(){
                 console.log(arguments);
                 io.errln("Query for '"+query+"' failed");
-                io.kill(new Failure("IOError");
+                io.kill(new Failure("IOError"));
             },
         })
     }

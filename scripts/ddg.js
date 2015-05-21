@@ -8,8 +8,8 @@ parser = new op.Parser(
         OPTIONS: op.filters.options([
             op.options.set("html", "H", "view HTML formated results"),
             op.options.set("help", "h", "view this help page"),
-        ]),Darwin!
-    },cCluskie-old:~ garymckluskie$ vim ddg.js
+        ]),
+    },
 )
 
 process.ddg = function(args, io){

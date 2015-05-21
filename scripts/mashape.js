@@ -22,7 +22,7 @@ process.mashape = function(args, io){
         throw new WrongUsage(e.message);
     }
     if(opts.key){
-        environment.MASHAPEKEY = opts.key,
+        environment.MASHAPEKEY = opts.key;
     }
     if(!environment.MASHAPEKEY){
         throw new WrongUsage("No API key provided");

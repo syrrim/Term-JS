@@ -2,7 +2,7 @@ op = optparser3
 var parser = new op.Parser(
     "mashape FIELD API OPTIONS",
     {
-        FIELD: ["The name of the field to be filled in by stdin", op.filters.position("field")]
+        FIELD: ["The name of the field to be filled in by stdin", op.filters.position("field")],
         API: ["The name of the API", op.filters.position("api")],
         OPTIONS: op.filters.options([
             op.options.string("key", "k", "Mashape API key"),

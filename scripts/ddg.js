@@ -34,7 +34,15 @@ process.ddg = function(args, io){
             dataType: "jsonp",
             success: function(reply){
                 console.log(reply);
-                io.writeln(JSON.stringify(reply, undefined, 4));
+                var R = reply.RelatedTopics
+                for(var i = 0; i < R.length; i++){
+                    if(R[i].Result)
+                        io.writeln(R[i].Result);
+                    /*else{
+                        for(var j = 0; j < R[i].Topics.length)
+                    }*/
+                }
+                io.writeln()//JSON.stringify(reply, undefined, 4));
                 callback();
             },
             error: function(){
@@ -57,4 +65,5 @@ process.ddg = function(args, io){
         }
         io.readln(read);
     }
+    io.errln("DDG answers provided by <a href='//duckduckgo.com'>DuckDuckGo</a><img src='//duckduckgo.com/favicon.ico'></img>")
 }

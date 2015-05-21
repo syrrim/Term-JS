@@ -10,6 +10,10 @@ parser = new op.Parser(
             op.options.set("help", "h", "view this help page"),
         ]),
     },
+    {
+        html: false,
+        help: false,
+    }
 )
 
 process.ddg = function(args, io){

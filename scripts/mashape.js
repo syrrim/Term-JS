@@ -5,6 +5,7 @@ var parser = new op.Parser(
         FIELD: ["The name of the field to be filled in by stdin", op.filters.position("field")]
         API: ["The name of the API", op.filters.position("api")],
         OPTIONS: op.filters.options([
+            op.options.string("key", "k", "Mashape API key"),
             op.options.string("data", "d", "query string encoded other data"),
         ]),
     },
@@ -20,13 +21,19 @@ process.mashape = function(args, io){
         io.errln(e.message);
         throw new WrongUsage(e.message);
     }
+    if(opts.key){
+        environment.MASHAPEKEY = opts.key,
+    }
+    if(!environment.MASHAPEKEY){
+        throw new WrongUsage("No API key provided");
+    }
     if(opts.help){
         io.writeln(parser.doc);
         throw new Success();
     }
     function mashape(query, callback){
         $.ajax({
-            url: 'https://'+opts.api+'.p.mashape.com/?'+opts.data, // The URL to the API. You can get this in the API page of the API you intend to consume
+            url: 'https://'+opts.api+'.p.mashape.com/'+opts.data, // The URL to the API. You can get this in the API page of the API you intend to consume
             type: 'GET', // The HTTP Method, can be GET POST PUT DELETE etc
             data: {
                 opts.field: query

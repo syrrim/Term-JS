@@ -37,6 +37,9 @@ var coercers = {
             }
         }
     },
+    json: function(string){
+        return JSON.parse(string);
+    },
 },
 options = {
     set: function(name, letter, doc){

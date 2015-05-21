@@ -6,11 +6,13 @@ var parser = new op.Parser(
         API: ["The name of the API", op.filters.position("api")],
         OPTIONS: op.filters.options([
             op.options.string("key", "k", "Mashape API key"),
-            op.options.string("data", "d", "query string encoded other data"),
+            op.options.string("loc", "l", "location past domain to go to"),
+            op.options.json("data", "d", "JSON encoded other data"),
         ]),
     },
     {
-        data: "",
+        data: {},
+        footer: "",
     }
 )
 man.mashape = parser.doc;
@@ -32,12 +34,13 @@ process.mashape = function(args, io){
         throw new Success();
     }
     function mashape(query, callback){
+        var data = {};
+        data[opts.field];
+        $.extend(data, opts.data);
         $.ajax({
-            url: 'https://'+opts.api+'.p.mashape.com/'+opts.data, // The URL to the API. You can get this in the API page of the API you intend to consume
+            url: 'https://'+opts.api+'.p.mashape.com/'+opts.footer, // The URL to the API. You can get this in the API page of the API you intend to consume
             type: 'GET', // The HTTP Method, can be GET POST PUT DELETE etc
-            data: {
-                opts.field: query
-            }, // Additional parameters here
+            data: data,
             datatype: 'json',
             success: function(data) {
                 io.writeln(JSON.stringify(data));

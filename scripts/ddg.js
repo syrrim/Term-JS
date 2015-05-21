@@ -1,4 +1,4 @@
-$(document).append("<h3>DDG answers provided by <a href='//duckduckgo.com'>DuckDuckGo</a><img src='//duckduckgo.com/favicon.ico'></img></h3>");
+$(document).append("sup")//"<h3>DDG answers provided by <a href='//duckduckgo.com'>DuckDuckGo</a><img src='//duckduckgo.com/favicon.ico'></img></h3>");
 
 op = optparse3;
 parser = new op.Parser(

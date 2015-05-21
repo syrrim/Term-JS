@@ -53,7 +53,7 @@ process.ddg = function(args, io){
         function read(line){
             ddg(line, function(){
                 io.readln(read);
-            };
+            });
         }
         io.readln(read);
     }

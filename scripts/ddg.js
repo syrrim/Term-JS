@@ -4,7 +4,7 @@ op = optparse3;
 parser = new op.Parser(
     "ddg [QUERY] OPTIONS",
     {
-        QUERY: ["string to search with", op.filters.position("query", op.coercers.nonOption),
+        QUERY: ["string to search with", op.filters.position("query", op.coercers.nonOption)],
         OPTIONS: op.filters.options([
             op.options.set("html", "H", "view HTML formated results"),
             op.options.set("help", "h", "view this help page"),

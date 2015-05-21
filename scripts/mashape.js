@@ -7,7 +7,7 @@ var parser = new op.Parser(
         OPTIONS: op.filters.options([
             op.options.string("key", "k", "Mashape API key"),
             op.options.string("loc", "l", "location past domain to go to"),
-            op.options.json("data", "d", "JSON encoded other data"),
+            op.options.data(op.coercers.json, "data", "d", "JSON encoded other data"),
         ]),
     },
     {

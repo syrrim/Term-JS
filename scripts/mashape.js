@@ -12,7 +12,7 @@ var parser = new op.Parser(
     },
     {
         data: {},
-        footer: "",
+        loc: "",
     }
 )
 man.mashape = parser.doc;
@@ -35,10 +35,10 @@ process.mashape = function(args, io){
     }
     function mashape(query, callback){
         var data = {};
-        data[opts.field];
+        data[opts.field] = query;
         $.extend(data, opts.data);
         $.ajax({
-            url: 'https://'+opts.api+'.p.mashape.com/'+opts.footer, // The URL to the API. You can get this in the API page of the API you intend to consume
+            url: 'https://'+opts.api+'.p.mashape.com/'+opts.loc, // The URL to the API. You can get this in the API page of the API you intend to consume
             type: 'GET', // The HTTP Method, can be GET POST PUT DELETE etc
             data: data,
             datatype: 'json',

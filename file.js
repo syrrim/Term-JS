@@ -97,10 +97,8 @@ window.dirs = {
     }
 }
 new File("/").append("");
-window.process = window.process?window.process:{};
-window.environment = window.environment?window.environment:{};
 environment.CWD = "/" // no user folders or other files, no need for home directory.
-op = optparse3;
+op = optparse;
 op.coercers.file = function(text){
     var path = dirs.navigate(environment.CWD, text);
     if(dirs.validFile(path)){

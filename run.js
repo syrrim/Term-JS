@@ -77,9 +77,10 @@ function bundle(stdin, stdout, stderr, end){
         errln: function(text){
             stderr.writeln(text);
         },
-        kill: function(err){
-            end(err);
-        },
+        kill: end,
+        stdin: stdin,
+        stdout: stdout,
+        stderr: stderr,
     }
 }
 Pipeline = function(callback){

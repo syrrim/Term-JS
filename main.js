@@ -4,55 +4,6 @@
  */
 
 
-//Object for storing possible commands
-window.process = process?process:{};
-//stores environment variables
-window.environment = environment?environment:{};
-environment.PATH = "scripts/";
-window.process.export = function(args, stdin, stdout, stderr, communicate){
-    var sides = args[1].split("="),
-        name = sides[0],
-        value = sides[1];
-    window.environment[name] = value;
-    communicate.finish(0);
-}
-window.process.reload = function(args, stdin, stdout, stderr, comm){
-    for(var i = 1; i < args.length; i++){
-        window.process[args[i]] = null;
-        get_script(args[i]);
-    }
-    throw new Complete();
-}
-window.man = {
-    man: "Usage: man command\n\nDisplays information such as usage and output for 'command'.\nOnly available as provided by 'command'.",
-    export: "Usage export VARIABLE=VALUE\n\nSets the environment variable named 'VARIABLE' to the string of 'VALUE'",
-    reload: "Usage reload command\n\nDeletes command and reloads it from saved.",
-};
-window.process.man = function(args, stdin, stdout, stderr, communicate){
-    var process = args[1];
-    if(window.man[process]){
-        stdout.writeln(window.man[process]);
-        communicate.finish(0);
-    }else{
-        get_script(process).then(
-            function(){
-                if(window.man[process]){
-                    stdout.writeln(window.man[process]);
-                    communicate.finish(0);
-                }else{
-                    stderr.writeln("'" + process + "' does not have a man page");
-                    communicate.finish(-1);
-                }
-            },
-            function(err){
-                console.log(err, "what?")
-                stderr.writeln("'" + process + "' does not exist");
-                communicate.finish(-1);
-            }
-        );
-    }
-}
-
 function Controller(backColor, mainColor, errColor, id){
     this.backColor = backColor;
     this.mainColor = mainColor;

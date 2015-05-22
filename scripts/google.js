@@ -34,7 +34,7 @@ function results(query, amount, sort){
                     })
 	});
 }
-var op = optparse3;
+var op = optparse;
 var parser = new op.Parser(
     "google [QUERY] OPTIONS",{
         QUERY: ["a string to search with.", op.filters.position("query", op.coercers.nonOption)],

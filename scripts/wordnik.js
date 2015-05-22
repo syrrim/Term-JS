@@ -1,6 +1,6 @@
 var baseUrl = "http://api.wordnik.com/v4/word.json/";
 var apiKey = "a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5"; //demo key from developer.wordnik.com
-var op = optparse3;
+var op = optparse;
 var relations =["synonym","antonym", "variant", 
     "equivalent", "cross-reference", "related-word",
     "rhyme", "form", "etymologically-related-term", 

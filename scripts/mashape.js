@@ -1,4 +1,4 @@
-op = optparse3
+op = optparse
 var parser = new op.Parser(
     "mashape FIELD API OPTIONS",
     {

@@ -238,6 +238,7 @@ function textify(text){
 var FORE = "black",
     BACK = "white";
 setInterval(function(){
+    if(!document.hasFocus())return false;
     pointer = document.getElementById("pointer");
     pointer.style.backgroundColor = pointer.style.backgroundColor === BACK? FORE: BACK
     pointer.style.color = pointer.style.color === BACK? FORE: BACK

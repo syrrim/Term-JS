@@ -36,7 +36,6 @@ Controller.prototype = {
         this.err.readln(err);
     },
     press: function(e){
-        if(e.ctrlKey || e.charCode == 99){console.log(e)}
         if(e.ctrlKey && (e.charCode === 99 || e.keyCode === 67)){
             self.kill_job();
             return true;
@@ -126,8 +125,7 @@ UserIn.prototype = {
                     userin.store = userin.text
                 }
                 userin.back ++;
-                console.log(userin.stream.lines, userin.stream.lines.length - userin.back - 1);
-                userin.text = userin.stream.lines[userin.stream.lines.length - userin.back - 1];
+                userin.text = userin.stream.lines.readLnAt(userin.stream.lines.length - userin.back - 1);
                 userin.pointer = userin.text.length;
             }
         },
@@ -138,7 +136,7 @@ UserIn.prototype = {
                     userin.text = userin.store;
                 }
                 else{
-                    text = userin.stream.lines[userin.stream.lines.length - userin.back - 1];
+                    text = userin.stream.lines.readLnAt(userin.stream.lines.length - userin.back - 1);
                     if(text)userin.text = text;
                 }
                 userin.pointer = userin.text.length;
@@ -195,9 +193,7 @@ UserIn.prototype = {
             return false
         }
         else if(e.ctrlKey){
-        	console.log(e.ctrlKey)
             if(e.charCode){
-            	console.log(e.charCode)
                 if(this.ctrl[e.charCode]){
                     this.ctrl[e.charCode](this);
                 }
@@ -205,7 +201,6 @@ UserIn.prototype = {
                     return false;
                 }
             }else{
-            	console.log(e.keyCode)
                 if(this.ctrlKey[e.keyCode]){
                     this.ctrlKey[e.keyCode](this);
                 }

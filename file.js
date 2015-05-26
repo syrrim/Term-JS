@@ -37,13 +37,20 @@ window.dirs = {
             return path.split("/").slice(0, -2).join("/");
         return path.split("/").slice(0, -1).join("/");
     },
-    get: function(path){
-        if(path === "/" || this.valid(path)){
-            return new File(path)
-        }else{
-            throw new Error("File or Directory at '"+path+"' does not exist");
+    _get: function(name){
+        fullname = this.navigate(environment.CWD, name);
+        return new File(fullname)
+    },
+    getFile: function(filename){
+        if(filename.slice(-1)!=="/"){
+            return this._get(filename);
         }
     },
+    getDir: function(filename){
+        if(filename.slice(-1)==="/"){
+            return this._get(filename);
+        }
+    }
     _add: function(parent, name){
         if(parent[parent.length-1] === "/" && this.valid(parent)){
             (new File(parent)).append(name+"\n");
@@ -101,20 +108,11 @@ environment.CWD = "/" // no user folders or other files, no need for home direct
 op = optparse;
 op.coercers.file = function(text){
     var path = dirs.navigate(environment.CWD, text);
-    if(dirs.validFile(path)){
-        return dirs.get(path);
-    }else{
-        throw new Error("not a file '"+path+"'");
-    }
+    return dirs.getFile(path);
 };
 op.coercers.dir = function(text){
     var path = dirs.navigate(environment.CWD, text);
-    if(dirs.validDir(path)){
-        return dirs.get(path);
-    }else{
-        throw new Error("Not a directory '"+path+"'");
-    }
-
+    return dirs.getDir(path);
 }
 op.coercers.path = function(text){
     return dirs.navigate(environment.CWD, text);
@@ -145,7 +143,7 @@ process.ls = function(args, io){
     try{
         var dir = args[1]?dirs.qualify(args[1]):environment.CWD
         if(!dirs.validDir(dir))throw new Failure("invalid directory '"+dir+"'")
-        io.write(dirs.get(dir).read());
+        io.write(dirs.getDir(dir).read());
     }catch(e){
         io.errln(e.message);
         throw new Failure(e.message);
@@ -160,6 +158,34 @@ process.rm = function(args, io){
     }else{
         io.errln("Invalid command");
         throw new WrongUsage("Invalid command '"+args+"'");
+    }
+}
+process.cat = function(args, io){
+    if(args.length === 1){
+        var await = true; 
+    }else{
+        var await = false;
+        var files = args.slice(1).reduce(function(string, array){
+            if(string === "-"){
+                await = true
+            }
+            if(await){
+                return array.concat(new FileStream(string))
+            }
+            io.writeln((new FileStream(string)).read()+"\n");
+            return array
+        }, []);
+    }
+    if(await){
+        function read(line){
+            try{
+                stdout.writeln(line);
+                stdin.readln(read);
+            }catch(e){
+                stdout.writeln(files.map(function(e){return e.read()}).join("\n"))
+            }
+        }
+        stdin.readln(read);
     }
 }
 PseudoFile = function(){
@@ -281,6 +307,6 @@ Stream.prototype = {
 };
 function FileStream(filename){
     Stream.call(this);
-    this.lines = new File(filename);
+    this.lines = dirs.getFile(filename)
 }
 FileStream.prototype = Object.create(Stream.prototype)

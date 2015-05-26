@@ -108,6 +108,29 @@ Pipeline.prototype = {
             }
         );
     },
+    file: function(args, stdin, stdout, stderr){
+        var files = [stdin, stdout, stderr],
+            parts;
+        for(var i = 0; i < args.length; i++){
+            if(parts = args[i].match(/^(\d*)(>(>|)|<(<|))$/)){
+                var file = parts[1]?parts[1]:(parts[2][0]==="<"?0:1),
+                    stream;
+                if(args[i+1][0] === "&"){
+                    if(!files[args[i+1].slice(1)])throw new WrongUsage("not a valid descriptor: "+args[i+1].slice(1));
+                    stream = files[args[i+1].slice(1)];
+                }else{
+                    stream = new FileStream(args[i+1]);
+                }
+                if(!(parts[3]||parts[4])){
+                    stream.write("");
+                }
+                files[file] = stream;
+                args.splice(i, 2);
+                i--;
+            }
+        }
+        this.add(args, files[0], files[1], files[2]);
+    }
     start: function(line, stdin, stdout, stderr){
         var processes = splitQuotes(line, "\\|");
         var args = [];
@@ -124,7 +147,7 @@ Pipeline.prototype = {
             }else{
                 instream = stdin;
             }
-            this.add(formatArgs(args[i]), instream, outstream, stderr);
+            this.file(formatArgs(args[i]), instream, outstream, stderr);
             outstream = instream;
         }
         /*

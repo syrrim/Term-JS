@@ -11,7 +11,7 @@ function Controller(backColor, mainColor, errColor, id){
     this.id = id;
     term = document.getElementById(id);
     term.focus()
-    term.style = "font-family:courier; color:"+mainColor+"; background-color:"+backColor+";display:inline-block;overflow:scroll;"
+    term.style = "color:"+mainColor+"; background-color:"+backColor+";"
     term.innerHTML = '<pre id="text"><span id="finished"></span><span id="current"><span id="pointer" style="color:'+
                             mainColor+';background-color:'+mainColor+'">|</span></span></pre>'
     this.userin = new UserIn(backColor, mainColor, "current");

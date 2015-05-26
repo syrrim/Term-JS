@@ -130,7 +130,7 @@ Pipeline.prototype = {
             }
         }
         this.add(args, files[0], files[1], files[2]);
-    }
+    },
     start: function(line, stdin, stdout, stderr){
         var processes = splitQuotes(line, "\\|");
         var args = [];

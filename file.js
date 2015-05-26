@@ -165,7 +165,7 @@ process.cat = function(args, io){
         var await = true; 
     }else{
         var await = false;
-        var files = args.slice(1).reduce(function(string, array){
+        var files = args.slice(1).reduce(function(array, string){
             if(string === "-"){
                 await = true
             }

@@ -12,8 +12,8 @@ function Controller(backColor, mainColor, errColor, id){
     term = document.getElementById(id);
     term.focus()
     term.style = "color:"+mainColor+"; background-color:"+backColor+";"
-    term.innerHTML = '<pre id="text"><span id="finished"></span><span id="current"><span id="pointer" style="color:'+
-                            mainColor+';background-color:'+mainColor+'">|</span></span></pre>'
+    term.innerHTML = '<span id="finished"></span><span id="current"><span id="pointer" style="color:'+
+                            mainColor+';background-color:'+mainColor+'">|</span></span>'
     this.userin = new UserIn(backColor, mainColor, "current");
     this.prompt = new Stream().reader();
     this.err = new Stream().reader()

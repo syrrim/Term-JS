@@ -50,7 +50,7 @@ window.dirs = {
         if(filename.slice(-1)==="/"){
             return this._get(filename);
         }
-    }
+    },
     _add: function(parent, name){
         if(parent[parent.length-1] === "/" && this.valid(parent)){
             (new File(parent)).append(name+"\n");

@@ -179,13 +179,13 @@ process.cat = function(args, io){
     if(await){
         function read(line){
             try{
-                stdout.writeln(line);
-                stdin.readln(read);
+                io.writeln(line);
+                io.readln(read);
             }catch(e){
-                stdout.writeln(files.map(function(e){return e.read()}).join("\n"))
+                io.writeln(files.map(function(e){return e.read()}).join("\n"))
             }
         }
-        stdin.readln(read);
+        io.readln(read);
     }
 }
 PseudoFile = function(){

@@ -1,312 +1,247 @@
-var File = function(name){
-    this.name = name
-}
-File.prototype = {
-    write: function(text){
-        localStorage.setItem(this.name, text);
-    },
-    append: function(text){
-        var old = this.read();
-        this.write((old?old:"") + text);
-    },
-    read: function(){
-        return localStorage.getItem(this.name);
-    },
-    readLnAt: function(indice){
-        return this.read().split("\n")[indice];
-    },
-    readLnFrom: function(indice){
-        return this.read().split("\n").slice(indice);
-    },
-    get length(){
-        return (this.read().match(/\n/g) || []).length
-    },
+/*
+ * Javascript Terminal Emulator.
+ * Use at your own risk.
+ */
+
+
+function Controller(backColor, mainColor, errColor, id){
+    this.backColor = backColor;
+    this.mainColor = mainColor;
+    this.errColor = errColor;
+    this.id = id;
+    term = document.getElementById(id);
+    term.focus()
+    term.style = "color:"+mainColor+"; background-color:"+backColor+";"
+    term.innerHTML = '<span id="finished"></span><span id="current"><span id="pointer" style="color:'+
+                            mainColor+';background-color:'+mainColor+'">|</span></span>'
+    this.userin = new UserIn(backColor, mainColor, "current");
+    this.prompt = new Stream().reader();
+    this.err = new Stream().reader()
+    self = this;
+    document.addEventListener("keypress", function(e){
+        e = e || window.event;
+        if(self.press(e) || self.userin.press(e)){
+            e.preventDefault()
+        }
+    });
+    this.errorReport()
+    this.get_job()
 };
-window.dirs = {
-    valid: function(path){
-        return path[0] === "/" && new File(path).read() !== null
-    },
-    validDir: function(path){
-        return this.valid(path) && path[path.length-1] === "/"
-    },
-    validFile: function(path){
-        return this.valid(path) && path[path.length-1] !== "/"
-    },
-    parent: function(path){
-        if(path[path.length-1] === "/")
-            return path.split("/").slice(0, -2).join("/");
-        return path.split("/").slice(0, -1).join("/");
-    },
-    _get: function(name){
-        fullname = this.navigate(environment.CWD, name);
-        return new File(fullname)
-    },
-    getFile: function(filename){
-        if(filename.slice(-1)!=="/"){
-            return this._get(filename);
+Controller.prototype = {
+    errorReport: function(){
+        function err(line){
+            self.println("<span style='color:"+self.errColor+"'>"+line+"</span>");
+            self.err.readln(err);
         }
+        this.err.readln(err);
     },
-    getDir: function(filename){
-        if(filename.slice(-1)==="/"){
-            return this._get(filename);
+    press: function(e){
+        if(e.ctrlKey && (e.charCode === 99 || e.keyCode === 67)){
+            self.kill_job();
+            return true;
         }
+        return false
     },
-    _add: function(parent, name){
-        if(parent[parent.length-1] === "/" && this.valid(parent)){
-            (new File(parent)).append(name+"\n");
-            var f = new File(parent + name);
-            f.append("");
-            return f;
-        }else{
-            throw new Error("Directory '"+parent+"' does not exist");
+    kill_job: function(){
+        this.pipeline.end(new Terminate());
+    },
+    get_job: function(){
+        this.print(window.environment.CWD + "$")
+        var self = this
+        this.userin.stream = this.prompt.stream
+        this.prompt.readln(function(line){
+            self.println(line);
+            self.start_job(line)
+        })
+    },
+    start_job: function(line){
+        this.pipeline = new Pipeline(function(){self.get_job()});
+        var instream = this.userin.reset_input(),
+        	outstream = new Stream();
+		this.outstream = outstream.reader();
+        this.instream = instream.reader()
+        this.displayin();
+		this.pipeline.start(line, instream, outstream, this.err.stream);
+        this.displayout()
+    },
+    displayin: function(){
+        var self = this
+        function print(text){
+            self.println(text)
+            self.instream.readln(print)
         }
+        this.instream.readln(print)
     },
-    addDir: function(parent, name){
-        if(name.indexOf("/") === name.length-1){
-            return this._add(parent, name);
-        }else{
-            throw new Error("Invalid directory name '"+ name + "'");
+    displayout: function(){
+        var self = this
+        function print(text){
+            self.println(text)
+            self.outstream.readln(print)
         }
+        this.outstream.readln(print)
     },
-    addFile: function(parent, name){
-        if(name.indexOf("/") === -1){
-            return this._add(parent, name);
-        }else{
-            throw new Error("Invalid file name '"+ name + "'");
-        }
+    print: function(text){
+        document.getElementById("finished").innerHTML += text.replace("\n", "</br>");
     },
-    navigate: function(orig, path){
-        var final;
-        if(path[0] === "/")
-            final = path;
-        else if(path[0] !== ".")
-            final = orig + path;
-        else if(path === ".")
-            final = orig;
-        else if(path.slice(0, 2) === "./")
-            final = orig + path.slice(2);
-        else if(path === "..")
-            final = this.parent(orig);
-        else if(path.slice(0, 3) === "../")
-            final = this.navigate(this.parent(orig) + "/", path.slice(3))
-        else
-            final = orig;
-        if(this.valid(final)){
-            return final;
-        }
-        throw Error("invalid path '" + final + "' from '"+orig+"'+'"+path+"'");
-    },
-    toDir: function(name){
-        return name? (name[name.length-1] === "/"? name : (name + "/")) :"";
-    },
-    qualify: function(input){
-        return this.navigate(environment.CWD, this.toDir(input));
+    println: function(line){
+        this.print(line + "\n");
     }
-}
-new File("/").append("");
-environment.CWD = "/" // no user folders or other files, no need for home directory.
-op = optparse;
-op.coercers.file = function(text){
-    var path = dirs.navigate(environment.CWD, text);
-    return dirs.getFile(path);
-};
-op.coercers.dir = function(text){
-    var path = dirs.navigate(environment.CWD, text);
-    return dirs.getDir(path);
-}
-op.coercers.path = function(text){
-    return dirs.navigate(environment.CWD, text);
-}
-process.cd = function(args, io){
-    var path = "/";
-    if(args[1]){
-        try{
-            path = dirs.qualify(args[1]);
-        }catch(e){
-            io.errln(e.message);
-            throw new Failure(e.message);
-        }
-    }
-    environment.CWD = path;
-    throw new Success();
-}
-process.mkdir = function(args, io){
-    if(!args[1]){
-        io.errln("No directory specified")
-        throw new WrongUsage("No Directory Specified");
-    }
-    try{dirs.addDir(environment.CWD, dirs.toDir(args[1]));}
-    catch(e){throw new Failure(e.message);}
-    throw new Success();
-}
-process.ls = function(args, io){
-    try{
-        var dir = args[1]?dirs.qualify(args[1]):environment.CWD
-        if(!dirs.validDir(dir))throw new Failure("invalid directory '"+dir+"'")
-        io.write(dirs.getDir(dir).read());
-    }catch(e){
-        io.errln(e.message);
-        throw new Failure(e.message);
-    }
-    throw new Success();
-}
-process.rm = function(args, io){
-    if(args+"" === ""+["rm", "/", "-rf", "--no-preserve-root"]){
-        localStorage.clear();
-        new File("/").append("");
-        throw new Success();
-    }else{
-        io.errln("Invalid command");
-        throw new WrongUsage("Invalid command '"+args+"'");
-    }
-}
-process.cat = function(args, io){
-    if(args.length === 1){
-        var await = true; 
-    }else{
-        var await = false;
-        var files = args.slice(1).reduce(function(array, string){
-            if(string === "-"){
-                await = true
-            }
-            if(await){
-                return array.concat(new FileStream(string))
-            }
-            io.writeln((new FileStream(string)).read()+"\n");
-            return array
-        }, []);
-    }
-    if(await){
-        function read(line){
-            try{
-                io.writeln(line);
-                io.readln(read);
-            }catch(e){
-                io.writeln(files.map(function(e){return e.read()}).join("\n"))
-            }
-        }
-        io.readln(read);
-    }
-}
-PseudoFile = function(){
-    this.arr = [];
-}
-PseudoFile.prototype = {
-    write: function(text){
-        this.arr = text.split("\n");
-    },
-    append: function(line){
-        this.arr.push(line);
-    },
-    read: function(){
-        return this.arr.join("\n");
-    },
-    readLnAt: function(indice){
-        return this.arr[indice];
-    },
-    readLnFrom: function(indice){
-        return this.arr.slice(indice)
-    },
-    get length(){
-        return this.arr.length;
-    },
 };
 
-function In(stream, end){
-    this.stream = stream;
-    this.index = 0;
-    this.depth = 0;
-    this.end = end
-    this.killer = null;
+function UserIn(back, fore, id){
+    this.background = back;
+    this.foreground = fore;
+    this.stream = new Stream()
+    this.id = id;
+    this.back = 0;
 }
-In.prototype = {
-    wrap: function(callback){
-        var self = this;
-        return function(line){
-            if(self.end){
-                try{
-                    callback(line);
-                }catch(e){
-                    self.end(e);
+UserIn.prototype = {
+    reset_input: function(){
+        this.stream = new Stream()
+        return this.stream;
+    },
+    special: {
+        13: function(userin){
+            userin.finish()
+        },
+        8: function(userin){
+            userin.text = userin.text.slice(0, userin.pointer-1) +
+                         userin.text.slice(userin.pointer, userin.text.length);
+            if(userin.pointer > 0)userin.pointer --;
+        },
+        39: function(userin){
+            if(userin.pointer < userin.text.length){
+                userin.pointer ++;
+            }
+        },
+        37: function(userin){
+            if(userin.pointer > 0){
+                userin.pointer --;
+            }
+        },
+        38: function(userin){
+            if(userin.back < userin.stream.lines.length-1){
+                if(userin.back === -1){
+                    userin.store = userin.text
+                }
+                userin.back ++;
+                userin.text = userin.stream.lines.readLnAt(userin.stream.lines.length - userin.back - 1);
+                userin.pointer = userin.text.length;
+            }
+        },
+        40: function(userin){
+            if(userin.back > -1){
+                userin.back --;
+                if(userin.back === -1){
+                    userin.text = userin.store;
+                }
+                else{
+                    text = userin.stream.lines.readLnAt(userin.stream.lines.length - userin.back - 1);
+                    if(text)userin.text = text;
+                }
+                userin.pointer = userin.text.length;
+            }
+        },
+    },
+    ctrl: {
+        97: function(userin){
+            userin.pointer = 0;
+        },
+        101: function(userin){
+            userin.pointer = userin.text.length;
+        },
+        117: function(userin){
+            userin.text = userin.text.slice(userin.pointer);
+            userin.pointer = 0;
+        },
+        118: function(userin){
+            paste = prompt("Paste Here");
+            userin.pointer = userin.pointer + paste.length;
+            userin.text = userin.text.slice(0, userin.pointer) + paste + userin.text.slice(userin.pointer);
+        }
+    },
+    ctrlKey: {
+        65: function(u){u.ctrl[97](u)},
+        69: function(u){u.ctrl[101](u)},
+        85: function(u){u.ctrl[117](u)},
+        86: function(u){u.ctrl[118](u)},
+    },
+    text: "",
+    pointer: 0,
+    finish: function(){
+        var text = this.text
+        this.text = "";
+        this.pointer = 0;
+        this.back = -1
+        try{
+            this.stream.writeln(text);
+        }catch(e){
+            console.log(e);
+        }
+
+    },
+    add: function(char){
+        this.text = this.text.slice(0, this.pointer) +
+                        char + this.text.slice(this.pointer, this.text.length);
+        this.pointer++;
+    },
+    press: function(e){
+        if(this.special[e.keyCode]){
+            this.special[e.keyCode](this);
+        }
+        else if(!e.charCode){
+            return false
+        }
+        else if(e.ctrlKey){
+            if(e.charCode){
+                if(this.ctrl[e.charCode]){
+                    this.ctrl[e.charCode](this);
+                }
+                else{
+                    return false;
                 }
             }else{
-                callback(line)
+                if(this.ctrlKey[e.keyCode]){
+                    this.ctrlKey[e.keyCode](this);
+                }
+                else{
+                    return false;
+                }
+
             }
         }
-    },
-    readln: function(callback){
-        if(this.killer){
-            throw this.killer
-        }
-        if(this.index < this.stream.lines.length){
-            this.index ++;
-            this.wrap(callback)(this.stream.lines.readLnAt(this.index-1));
+        else if(e.metaKey){
+            return false;
         }
         else{
-            this.index ++;
-            this.stream.line_listener.push(this.wrap(callback));
+            this.add(String.fromCharCode(e.charCode));
         }
-    },
-    read: function(callback){
-        if(this.killer){
-            throw this.killer
+        this.html = textify(this.text.slice(0, this.pointer));
+        if(this.text[this.pointer] === "\n"){
+            this.html += "<span id='pointer' style='color:"+this.foreground+";background-color:"+this.foreground+"'>|</span><br/>"
         }
-        if(this.index < this.stream.lines.length || this.depth < this.stream.line.length ){
-            prevind = this.index;
-            prevdepth = this.depth;
-            this.index = this.stream.lines.length;
-            this.depth = this.stream.line.length;
-            this.wrap(callback)(this.stream.lines.readLnFrom(prevind).join("\n") + "\n" + this.stream.line.slice(prevdepth));
+        else if(this.text[this.pointer]){
+            this.html += "<span id='pointer' style='color:"+this.background+";background-color:"+this.foreground+"'>"+textify(this.text[this.pointer])+"</span>"
         }
         else{
-            this.index = this.stream.lines.length;
-            this.depth = this.stream.line.length;
-            this.stream.listener.push(this.wrap(callback));
+            this.html += "<span id='pointer' style='color:"+this.foreground+";background-color:"+this.foreground+"'>|</span>"
         }
-    },
-    kill: function(error){
-        this.killer = error;
-    },
-};
-function Stream(){
-    this.lines = new PseudoFile();
-    this.line = "";
-    this.line_listener = [];
-    this.listener = [];
-
-};
-Stream.prototype = {
-    write: function(text){
-        var lines = text.split("\n")
-        for(var i = 0; i < lines.length-1; i++){
-            this.line += lines[i]
-            this.endln()
-        }
-        this.line += lines[lines.length-1]
-        var callbacks = this.listener;
-        this.listener = [];
-        for(var i = 0; i < callbacks.length; i++){
-            callbacks[i](text)
-        }
-    },
-    writeln: function(text){
-        this.write(text+"\n")
-    },
-    endln: function(){
-        var line_listener = this.line_listener;
-        this.line_listener = [];
-        for(var i = 0; i < line_listener.length; i++){
-            line_listener[i](this.line);
-        }
-        this.lines.append(this.line)
-        this.line = "";
-    },
-    reader: function(end){
-        return new In(this, end);
-    },
-};
-function FileStream(filename){
-    Stream.call(this);
-    this.lines = dirs.getFile(filename)
+        this.html += textify (this.text.slice(this.pointer+1));
+        document.getElementById(this.id).innerHTML = this.html
+        document.getElementById("term").scrollTop = document.getElementById(this.id).offsetTop;
+        return true
+    }
 }
-FileStream.prototype = Object.create(Stream.prototype)
+function textify(text){
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n","</br>");
+}
+var FORE = "black",
+    BACK = "white";
+setInterval(function(){
+    if(!document.hasFocus())return false;
+    pointer = document.getElementById("pointer");
+    pointer.style.backgroundColor = pointer.style.backgroundColor === BACK? FORE: BACK
+    pointer.style.color = pointer.style.color === BACK? FORE: BACK
+
+}, 700);
+window.controller = new Controller(BACK, FORE, "red", "term")

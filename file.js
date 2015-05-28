@@ -40,41 +40,33 @@ window.dirs = {
     _get: function(name){
         var fullname = this.navigate(environment.CWD, name, true);
         var file = new File(fullname);
-        file.append("");
         return file
     },
     getFile: function(filename){
         if(filename.slice(-1)!=="/"){
             return this._get(filename);
         }
+        throw new Error("invalid file:"+filename)
     },
     getDir: function(filename){
         if(filename.slice(-1)==="/"){
             return this._get(filename);
         }
+        throw new Error("invalid dir:"+filename)
     },
-    _add: function(parent, name){
-        if(parent[parent.length-1] === "/" && this.valid(parent)){
-            (new File(parent)).append(name+"\n");
-            var f = new File(parent + name);
-            f.append("");
-            return f;
-        }else{
-            throw new Error("Directory '"+parent+"' does not exist");
+    delFile: function(name){
+        if(this.validFile(name)){
+            getFile(name).write(null);
         }
     },
-    addDir: function(parent, name){
-        if(name.indexOf("/") === name.length-1){
-            return this._add(parent, name);
+    del: function(name){
+        if(name.slice(-1) !== "/"){
+            this.delFile(name);
         }else{
-            throw new Error("Invalid directory name '"+ name + "'");
-        }
-    },
-    addFile: function(parent, name){
-        if(name.indexOf("/") === -1){
-            return this._add(parent, name);
-        }else{
-            throw new Error("Invalid file name '"+ name + "'");
+            var files = getDir(filename).read.split("\n");
+            for(var i = 0; i < files.length; i++){
+                this.del(name + files[i]);
+            }
         }
     },
     navigate: function(orig, path, absent){

@@ -10,7 +10,6 @@ File.prototype = {
         this.write((old?old:"") + text);
     },
     read: function(){
-        console.log(this.name);
         return localStorage.getItem(this.name);
     },
     readLnAt: function(indice){
@@ -40,7 +39,6 @@ window.dirs = {
     },
     _get: function(name){
         var fullname = this.navigate(environment.CWD, name, true);
-        console.log(fullname);
         var file = new File(fullname);
         file.append("");
         return file
@@ -280,10 +278,28 @@ function Stream(){
     this.line = "";
     this.line_listener = [];
     this.listener = [];
-
+    this.triggers = {};
 };
 Stream.prototype = {
     write: function(text){
+        var newtext = [],
+            distance = 0;
+        if(Object.keys(this.triggers).length){
+            for(var i = 0; i < text.length;){
+                if(this.triggers[text[i]]){
+                    if(distance = this.triggers[text[i]](text.slice(i))){
+                        i += distance;
+                    }else{
+                        newtext.push(text[i]);
+                        i++;
+                    }
+                }else{
+                    newtext.push(text[i]);
+                    i++;
+                }
+            }
+            text = newtext.join("")
+        }
         var lines = text.split("\n")
         for(var i = 0; i < lines.length-1; i++){
             this.line += lines[i]

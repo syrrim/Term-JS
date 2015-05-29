@@ -5,27 +5,46 @@
 
 
 function Controller(backColor, mainColor, errColor, id){
+    self = this;
     this.backColor = backColor;
     this.mainColor = mainColor;
     this.errColor = errColor;
     this.id = id;
+    
     term = document.getElementById(id);
-    term.focus()
-    term.style = "color:"+mainColor+"; background-color:"+backColor+";"
+    term.focus();
+    term.style = "color:"+mainColor+"; background-color:"+backColor+";";
     term.innerHTML = '<span id="finished"></span><span id="current"><span id="pointer" style="color:'+
-                            mainColor+';background-color:'+mainColor+'">|</span></span>'
-    this.userin = new UserIn(backColor, mainColor, "current");
+                            mainColor+';background-color:'+mainColor+'">|</span></span>';
+    
     this.prompt = new Stream().reader();
-    this.err = new Stream().reader()
-    self = this;
+    this.prompt.stream.backspace = this.prompt.stream.triggers["\b"];
+    this.prompt.stream.triggers["\b"] = function(){
+        if(self.prompt.stream.line.length)
+            self.del(1);
+        self.prompt.stream.backspace();
+    }
+    this.instream = this.prompt;
+    this.err = new Stream().reader();
+    
     document.addEventListener("keypress", function(e){
-        e = e || window.event;
-        if(self.press(e) || self.userin.press(e)){
-            e.preventDefault()
+        e = e || window.event
+        console.log(e);
+        if( self.press(e)){
+            e.preventDefault();
+            return false;
         }
     });
-    this.errorReport()
-    this.get_job()
+    document.addEventListener("keydown", function(e){
+        e = e || window.event;
+        if(self.down(e)){
+            e.preventDefault();
+        }
+    });
+
+    this.errorReport();
+    this.displayin();
+    this.get_job();
 };
 Controller.prototype = {
     errorReport: function(){
@@ -36,49 +55,65 @@ Controller.prototype = {
         this.err.readln(err);
     },
     press: function(e){
+        if(e.charCode){
+            this.prompt.stream.write(String.fromCharCode(e.charCode));
+        }
         if(e.ctrlKey && (e.charCode === 99 || e.keyCode === 67)){
             self.kill_job();
             return true;
         }
-        return false
+        return false;
+    },
+    down: function(e){
+        switch(e.keyCode){
+            case 8:
+                self.prompt.stream.write("\b");
+                break;
+            default:
+                return false;
+        }
+        return true;
+
     },
     kill_job: function(){
         this.pipeline.end(new Terminate());
     },
     get_job: function(){
-        this.print(window.environment.CWD + "$")
-        var self = this
-        this.userin.stream = this.prompt.stream
+        this.print(window.environment.CWD + "$");
+        var self = this;
         this.prompt.readln(function(line){
             self.println(line);
-            self.start_job(line)
-        })
+            self.start_job(line);
+        });
     },
     start_job: function(line){
         this.pipeline = new Pipeline(function(){self.get_job()});
-        var instream = this.userin.reset_input(),
+        var instream = new Stream(),
         	outstream = new Stream();
 		this.outstream = outstream.reader();
-        this.instream = instream.reader()
+        this.instream = instream.reader();
         this.displayin();
 		this.pipeline.start(line, instream, outstream, this.err.stream);
-        this.displayout()
+        this.displayout();
     },
     displayin: function(){
-        var self = this
+        var self = this;
         function print(text){
-            self.println(text)
-            self.instream.readln(print)
+            self.print(text);
+            self.instream.read(print);
         }
-        this.instream.readln(print)
+        this.instream.read(print);
     },
     displayout: function(){
-        var self = this
+        var self = this;
         function print(text){
-            self.println(text)
-            self.outstream.readln(print)
+            self.println(text);
+            self.outstream.readln(print);
         }
-        this.outstream.readln(print)
+        this.outstream.readln(print);
+    },
+    del: function(amount){
+         document.getElementById("finished").innerHTML = document.getElementById("finished").innerHTML.slice(0, -amount);
     },
     print: function(text){
         document.getElementById("finished").innerHTML += text.replace("\n", "</br>");
@@ -91,18 +126,18 @@ Controller.prototype = {
 function UserIn(back, fore, id){
     this.background = back;
     this.foreground = fore;
-    this.stream = new Stream()
+    this.stream = new Stream();
     this.id = id;
     this.back = 0;
 }
 UserIn.prototype = {
     reset_input: function(){
-        this.stream = new Stream()
+        this.stream = new Stream();
         return this.stream;
     },
     special: {
         13: function(userin){
-            userin.finish()
+            userin.finish();
         },
         8: function(userin){
             userin.text = userin.text.slice(0, userin.pointer-1) +
@@ -122,7 +157,7 @@ UserIn.prototype = {
         38: function(userin){
             if(userin.back < userin.stream.lines.length-1){
                 if(userin.back === -1){
-                    userin.store = userin.text
+                    userin.store = userin.text;
                 }
                 userin.back ++;
                 userin.text = userin.stream.lines.readLnAt(userin.stream.lines.length - userin.back - 1);
@@ -169,10 +204,10 @@ UserIn.prototype = {
     text: "",
     pointer: 0,
     finish: function(){
-        var text = this.text
+        var text = this.text;
         this.text = "";
         this.pointer = 0;
-        this.back = -1
+        this.back = -1;
         try{
             this.stream.writeln(text);
         }catch(e){
@@ -190,7 +225,7 @@ UserIn.prototype = {
             this.special[e.keyCode](this);
         }
         else if(!e.charCode){
-            return false
+            return false;
         }
         else if(e.ctrlKey){
             if(e.charCode){

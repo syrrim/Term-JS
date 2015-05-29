@@ -271,37 +271,42 @@ function Stream(){
     this.line_listener = [];
     this.listener = [];
     this.triggers = {};
+    var self = this
+    this.triggers["\b"] = function(){
+        self.line = self.line.slice(0, -1);
+        return 1;
+    }
+    this.triggers["\r"] = function(){
+        self.endline()
+        return 1;
+    }
 };
 Stream.prototype = {
     write: function(text){
         var newtext = [],
-            distance = 0;
+            distance = 0,
+            capture = 0;
         if(Object.keys(this.triggers).length){
             for(var i = 0; i < text.length;){
-                if(this.triggers[text[i]]){
-                    if(distance = this.triggers[text[i]](text.slice(i))){
-                        i += distance;
-                    }else{
-                        newtext.push(text[i]);
-                        i++;
-                    }
+                if(this.triggers[text[i]] &&  (distance = this.triggers[text[i]](text.slice(i)))  ){
+                    i += distance;
                 }else{
-                    newtext.push(text[i]);
+                    this.line += text[i];
                     i++;
+                    capture ++;
                 }
             }
-            text = newtext.join("")
         }
-        var lines = text.split("\n")
-        for(var i = 0; i < lines.length-1; i++){
-            this.line += lines[i]
-            this.endln()
-        }
-        this.line += lines[lines.length-1]
-        var callbacks = this.listener;
-        this.listener = [];
-        for(var i = 0; i < callbacks.length; i++){
-            callbacks[i](text)
+        if(this.listener.length){
+            var callbacks = this.listener,
+                visible = (this.line.length > capture ? 
+                            this.lines.join("\n").slice(capture - this.line.length) :
+                            "") + 
+                        this.line.slice(-capture);
+            this.listener = [];
+            for(var i = 0; i < callbacks.length; i++){
+                callbacks[i](visible)
+            }
         }
     },
     writeln: function(text){

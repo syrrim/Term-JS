@@ -292,6 +292,7 @@ function Stream(){
 };
 Stream.prototype = {
     write: function(text){
+        console.log(text)
         var newtext = [],
             distance = 0,
             capture = 0;

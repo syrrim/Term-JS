@@ -233,16 +233,17 @@ In.prototype = {
             }
         }
     },
-    readln: function(callback){
+    readln: function(callback, print){
         if(this.killer){
             throw this.killer
         }
-        if(this.index < this.stream.lines.length){
-            this.index ++;
+		this.index ++
+		print && console.log(this.stream.lines, this.index)
+        if(this.index <= this.stream.lines.length){
+			print && console.log(this.stream.lines.read());
             this.wrap(callback)(this.stream.lines.readLnAt(this.index-1));
         }
         else{
-            this.index ++;
             this.stream.line_listener.push(this.wrap(callback));
         }
     },
@@ -258,7 +259,7 @@ In.prototype = {
             this.wrap(callback)(this.stream.lines.readLnFrom(prevind).join("\n") + "\n" + this.stream.line.slice(prevdepth));
         }
         else{
-            this.index = this.stream.lines.length;
+            this.index = this.stream.lines.length+1;
             this.depth = this.stream.line.length;
             this.stream.listener.push(this.wrap(callback));
         }
@@ -280,19 +281,16 @@ function Stream(){
         return 1;
     }
     this.triggers["\n"] = function(){
-        console.log("line!")
         self.endln()
         return 1;
     }
     this.triggers["\r"] = function(){
-        console.log("line!")
         self.endln();
         return 1;
     }
 };
 Stream.prototype = {
     write: function(text){
-        console.log(text)
         var newtext = [],
             distance = 0,
             capture = 0;

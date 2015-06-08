@@ -24,12 +24,14 @@ function Controller(backColor, mainColor, errColor, id){
             self.del(1);
         self.prompt.stream.backspace();
     }
+	setInterval(function(){
+		console.log(self.prompt.index, self.prompt.stream.lines);
+		}, 1000)
     this.instream = this.prompt;
     this.err = new Stream().reader();
     
     document.addEventListener("keypress", function(e){
         e = e || window.event
-        console.log(e);
         if( self.press(e)){
             e.preventDefault();
             return false;
@@ -57,7 +59,9 @@ Controller.prototype = {
     press: function(e){
         if(e.charCode){
             this.prompt.stream.write(String.fromCharCode(e.charCode));
-        }
+        }else if(e.keyCode){
+			this.prompt.stream.write(String.fromCharCode(e.keyCode));
+		}
         if(e.ctrlKey && (e.charCode === 99 || e.keyCode === 67)){
             self.kill_job();
             return true;
@@ -81,10 +85,11 @@ Controller.prototype = {
     get_job: function(){
         this.print(window.environment.CWD + "$");
         var self = this;
-        this.prompt.readln(function(line){
-            self.println(line);
+		this.instream = this.prompt;
+        this.instream.readln(function(line){
+            self.println("");
             self.start_job(line);
-        });
+        }, true);
     },
     start_job: function(line){
         this.pipeline = new Pipeline(function(){self.get_job()});

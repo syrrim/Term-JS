@@ -280,10 +280,12 @@ function Stream(){
         return 1;
     }
     this.triggers["\n"] = function(){
+        console.log("line!")
         self.endln()
         return 1;
     }
     this.triggers["\r"] = function(){
+        console.log("line!")
         self.endln();
         return 1;
     }

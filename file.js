@@ -237,7 +237,6 @@ In.prototype = {
         if(this.killer){
             throw this.killer
         }
-		this.index ++
 		print && console.log(this.stream.lines, this.index)
         if(this.index <= this.stream.lines.length){
 			print && console.log(this.stream.lines.read());
@@ -252,15 +251,9 @@ In.prototype = {
             throw this.killer
         }
         if(this.index < this.stream.lines.length || this.depth < this.stream.line.length ){
-            prevind = this.index;
-            prevdepth = this.depth;
-            this.index = this.stream.lines.length;
-            this.depth = this.stream.line.length;
             this.wrap(callback)(this.stream.lines.readLnFrom(prevind).join("\n") + "\n" + this.stream.line.slice(prevdepth));
         }
         else{
-            this.index = this.stream.lines.length+1;
-            this.depth = this.stream.line.length;
             this.stream.listener.push(this.wrap(callback));
         }
     },

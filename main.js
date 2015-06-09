@@ -16,7 +16,6 @@ function Controller(backColor, mainColor, errColor, id){
     term.style = "color:"+mainColor+"; background-color:"+backColor+";";
     term.innerHTML = '<span id="finished"></span><span id="current"><span id="pointer" style="color:'+
                             mainColor+';background-color:'+mainColor+'">|</span></span>';
-    
     this.prompt = new Stream().reader();
     this.prompt.stream.backspace = this.prompt.stream.triggers["\b"];
     this.prompt.stream.triggers["\b"] = function(){
@@ -24,12 +23,9 @@ function Controller(backColor, mainColor, errColor, id){
             self.del(1);
         self.prompt.stream.backspace();
     }
-	setInterval(function(){
-		console.log(self.prompt.index, self.prompt.stream.lines);
-		}, 1000)
+    this.prompt.stream.name = "Tim"
     this.instream = this.prompt;
     this.err = new Stream().reader();
-    
     document.addEventListener("keypress", function(e){
         e = e || window.event
         if( self.press(e)){
@@ -57,10 +53,11 @@ Controller.prototype = {
         this.err.readln(err);
     },
     press: function(e){
+        console.log(String.fromCharCode(e.charCode), this.instream.stream)
         if(e.charCode){
-            this.prompt.stream.write(String.fromCharCode(e.charCode));
+            this.instream.stream.write(String.fromCharCode(e.charCode));
         }else if(e.keyCode){
-			this.prompt.stream.write(String.fromCharCode(e.keyCode));
+			this.instream.stream.write(String.fromCharCode(e.keyCode));
 		}
         if(e.ctrlKey && (e.charCode === 99 || e.keyCode === 67)){
             self.kill_job();
@@ -71,7 +68,7 @@ Controller.prototype = {
     down: function(e){
         switch(e.keyCode){
             case 8:
-                self.prompt.stream.write("\b");
+                self.instream.stream.write("\b");
                 break;
             default:
                 return false;
@@ -87,7 +84,6 @@ Controller.prototype = {
         var self = this;
 		this.instream = this.prompt;
         this.instream.readln(function(line){
-            self.println("");
             self.start_job(line);
         }, true);
     },
@@ -121,6 +117,7 @@ Controller.prototype = {
          document.getElementById("finished").innerHTML = document.getElementById("finished").innerHTML.slice(0, -amount);
     },
     print: function(text){
+        console.log(text);console.trace();
         document.getElementById("finished").innerHTML += text.replace("\n", "</br>");
     },
     println: function(line){

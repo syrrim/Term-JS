@@ -213,7 +213,7 @@ function In(stream, end){
     this.stream = stream;
     this.index = 0;
     this.depth = 0;
-    this.end = end
+    this.end = end;
     this.killer = null;
 }
 In.prototype = {
@@ -237,9 +237,7 @@ In.prototype = {
         if(this.killer){
             throw this.killer
         }
-		print && console.log(this.stream.lines, this.index)
-        if(this.index <= this.stream.lines.length){
-			print && console.log(this.stream.lines.read());
+        if(this.index < this.stream.lines.length){
             this.wrap(callback)(this.stream.lines.readLnAt(this.index-1));
         }
         else{
@@ -273,14 +271,15 @@ function Stream(){
         self.line = self.line.slice(0, -1);
         return 1;
     }
-    this.triggers["\n"] = function(){
-        self.endln()
-        return 1;
-    }
-    this.triggers["\r"] = function(){
+    function ln(){
         self.endln();
+        for(var listen of self.listener){
+            listen("\n");
+        }
         return 1;
     }
+    this.triggers["\n"] = ln
+    this.triggers["\r"] = ln
 };
 Stream.prototype = {
     write: function(text){
@@ -299,11 +298,13 @@ Stream.prototype = {
             }
         }
         if(this.listener.length){
+            console.log(this.line.length, capture, capture - this.line.length, -capture)
             var callbacks = this.listener,
-                visible = (this.line.length > capture ? 
-                            this.lines.read().slice(capture - this.line.length) :
+                visible = (this.line.length < capture ? 
+                            this.lines.read().slice(this.line.length - capture) :
                             "") + 
                         this.line.slice(-capture);
+            //console.log(distance, capture, text, visible, this.line)
             if(visible){
                 this.listener = [];
                 for(var i = 0; i < callbacks.length; i++){
@@ -318,11 +319,12 @@ Stream.prototype = {
     endln: function(){
         var line_listener = this.line_listener;
         this.line_listener = [];
-        for(var i = 0; i < line_listener.length; i++){
-            line_listener[i](this.line);
-        }
+        var text = this.line;
         this.lines.append(this.line)
         this.line = "";
+        for(var i = 0; i < line_listener.length; i++){
+            line_listener[i](text);
+        }
     },
     reader: function(end){
         return new In(this, end);

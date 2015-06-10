@@ -298,13 +298,11 @@ Stream.prototype = {
             }
         }
         if(this.listener.length){
-            console.log(this.line.length, capture, capture - this.line.length, -capture)
             var callbacks = this.listener,
                 visible = (this.line.length < capture ? 
                             this.lines.read().slice(this.line.length - capture) :
                             "") + 
                         this.line.slice(-capture);
-            //console.log(distance, capture, text, visible, this.line)
             if(visible){
                 this.listener = [];
                 for(var i = 0; i < callbacks.length; i++){

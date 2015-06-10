@@ -20,8 +20,8 @@ function Controller(backColor, mainColor, errColor, id){
     this.prompt.stream.backspace = this.prompt.stream.triggers["\b"];
     this.prompt.stream.triggers["\b"] = function(){
         if(self.prompt.stream.line.length)
-            self.del(1);
-        self.prompt.stream.backspace();
+            document.getElementById("current").innerHTML = document.getElementById("current").innerHTML.slice(0, -1);
+        return self.prompt.stream.backspace();
     }
     this.prompt.stream.name = "Tim"
     this.instream = this.prompt;
@@ -41,6 +41,7 @@ function Controller(backColor, mainColor, errColor, id){
     });
 
     this.errorReport();
+    this.displayprompt();
     this.displayin();
     this.get_job();
 };
@@ -53,7 +54,6 @@ Controller.prototype = {
         this.err.readln(err);
     },
     press: function(e){
-        console.log(String.fromCharCode(e.charCode), this.instream.stream)
         if(e.charCode){
             this.instream.stream.write(String.fromCharCode(e.charCode));
         }else if(e.keyCode){
@@ -97,13 +97,21 @@ Controller.prototype = {
 		this.pipeline.start(line, instream, outstream, this.err.stream);
         this.displayout();
     },
-    displayin: function(){
+    displayprompt: function(){
         var self = this;
-        function print(text){
-            self.print(text);
+        function print(){
+            document.getElementById("current").innerHTML = self.instream.stream.line;
             self.instream.read(print);
         }
         this.instream.read(print);
+    },
+    displayin: function(){
+        var self = this;
+        function print(text){
+            self.println(text);
+            self.instream.readln(print);
+        }
+        this.instream.readln(print);
     },
     displayout: function(){
         var self = this;
@@ -113,11 +121,7 @@ Controller.prototype = {
         }
         this.outstream.readln(print);
     },
-    del: function(amount){
-         document.getElementById("finished").innerHTML = document.getElementById("finished").innerHTML.slice(0, -amount);
-    },
     print: function(text){
-        console.log(text);console.trace();
         document.getElementById("finished").innerHTML += text.replace("\n", "</br>");
     },
     println: function(line){

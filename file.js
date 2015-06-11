@@ -288,7 +288,8 @@ Stream.prototype = {
             capture = 0;
         if(Object.keys(this.triggers).length){
             for(var i = 0; i < text.length;){
-                if(this.triggers[text[i]] &&  (distance = this.triggers[text[i]](text.slice(i)))  ){
+                if(this.triggers[text[i]] &&  
+                        (distance = this.triggers[text[i]](text.slice(i)))  ){
                     i += distance;
                 }else{
                     this.line += text[i];

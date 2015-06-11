@@ -17,13 +17,34 @@ function Controller(backColor, mainColor, errColor, id){
     term.innerHTML = '<span id="finished"></span><span id="current"><span id="pointer" style="color:'+
                             mainColor+';background-color:'+mainColor+'">|</span></span>';
     this.prompt = new Stream().reader();
+    this.pointer = 0;
     this.prompt.stream.backspace = this.prompt.stream.triggers["\b"];
     this.prompt.stream.triggers["\b"] = function(){
         if(self.prompt.stream.line.length)
-            document.getElementById("current").innerHTML = document.getElementById("current").innerHTML.slice(0, -1);
+            self.updatePrompt();
         return self.prompt.stream.backspace();
     }
-    this.prompt.stream.name = "Tim"
+    this.prompt.stream.triggers[String.fromCharCode(27)] = function(text){
+        switch(text[1]){
+            case "A":
+                console.log(self.pointer)
+                if(self.pointer>0){
+                    self.pointer --;
+                }
+                console.log(self.pointer)
+                break;
+            case "C":
+                if(self.pointer < self.instream.stream.line.length)
+                    self.pointer ++;
+                break;
+            default:
+                console.log("Invalid Escape Code: " + text[1]);
+                return 1;
+        }
+        self.updatePrompt()
+        return 2;
+        
+    }
     this.instream = this.prompt;
     this.err = new Stream().reader();
     document.addEventListener("keypress", function(e){
@@ -39,7 +60,6 @@ function Controller(backColor, mainColor, errColor, id){
             e.preventDefault();
         }
     });
-
     this.errorReport();
     this.displayprompt();
     this.displayin();
@@ -56,9 +76,8 @@ Controller.prototype = {
     press: function(e){
         if(e.charCode){
             this.instream.stream.write(String.fromCharCode(e.charCode));
-        }else if(e.keyCode){
-			this.instream.stream.write(String.fromCharCode(e.keyCode));
-		}
+            return true;
+        }
         if(e.ctrlKey && (e.charCode === 99 || e.keyCode === 67)){
             self.kill_job();
             return true;
@@ -69,6 +88,21 @@ Controller.prototype = {
         switch(e.keyCode){
             case 8:
                 self.instream.stream.write("\b");
+                break;
+            case 12:
+                self.instream.stream.write("\r");
+                break;
+            case 37://left;
+                self.instream.stream.write(String.fromCharCode(27)+"A");
+                break;
+            case 38://up;
+                self.instream.stream.write(String.fromCharCode(27)+"B");
+                break;
+            case 39://right;
+                self.instream.stream.write(String.fromCharCode(27)+"C");
+                break;
+            case 40://down;
+                self.instream.stream.write(String.fromCharCode(27)+"D");
                 break;
             default:
                 return false;
@@ -97,10 +131,34 @@ Controller.prototype = {
 		this.pipeline.start(line, instream, outstream, this.err.stream);
         this.displayout();
     },
+    updatePrompt(){
+            console.trace();
+            if(isNaN(this.pointer) || this.pointer < 0){
+                this.pointer = 0;
+            }else if(this.pointer > this.instream.stream.line.length){
+                this.pointer = this.instream.stream.line.length;
+            }
+            var text = this.instream.stream.line,
+                html;
+            html = textify(text.slice(0, this.pointer));
+            if(text[this.pointer] === "\n"){
+                html += "<span id='pointer' style='color:"+this.mainColor+";background-color:"+this.mainColor+"'>|</span><br/>"
+            }
+            else if(text[this.pointer]){
+                html += "<span id='pointer' style='color:"+this.backColor+";background-color:"+this.mainColor+"'>"+textify(text[this.pointer])+"</span>"
+            }
+            else{
+                html += "<span id='pointer' style='color:"+this.mainColor+";background-color:"+this.mainColor+"'>|</span>"
+            }
+            html += textify (text.slice(this.pointer+1));
+            document.getElementById("current").innerHTML = html
+            document.getElementById("term").scrollTop = document.getElementById("current").offsetTop;
+    },
     displayprompt: function(){
         var self = this;
-        function print(){
-            document.getElementById("current").innerHTML = self.instream.stream.line;
+        function print(line){
+            self.pointer += line.length
+            self.updatePrompt();
             self.instream.read(print);
         }
         this.instream.read(print);

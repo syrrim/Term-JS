@@ -1,5 +1,5 @@
 window.process.download = function(args, io){
-    var file = dir.getFile(args[1]),
+    var file = window.dirs.getFile(args[1]),
         url = URL.createObjectUrl(Blob(file.read())),
         link = document.createElement("a");
     link.style.display = "none";

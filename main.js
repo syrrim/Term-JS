@@ -20,9 +20,9 @@ function Controller(backColor, mainColor, errColor, id){
     this.after = "";
     var backspace = this.prompt.stream.triggers["\b"];
     this.prompt.stream.triggers["\b"] = function(){
-        backspace.call(self.instream.stream);
-        if(self.instream.stream.line.length)self.updatePrompt();
-        return 1
+        var final = backspace.call(self.instream.stream);
+        self.updatePrompt();
+        return final;
     }
     this.prompt.stream.triggers[String.fromCharCode(27)] = function(text){
         var stream = self.instream.stream;

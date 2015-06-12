@@ -5,6 +5,10 @@ window.process.download = function(args, io){
     link.style.display = "none";
     link.href = url;
     link.download = file;
-    document.appendChild(link);
+    document.body.appendChild(link);
     link.click();
+    createTimeout(function(){
+        body.removeChild(link);
+        URL.revokeObjectUrl(url);
+    }, 100)
 }

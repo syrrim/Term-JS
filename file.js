@@ -9,6 +9,9 @@ File.prototype = {
         var old = this.read();
         this.write((old?old:"") + text);
     },
+    appendln: function(line){
+        this.append(line + "\n");
+    },
     read: function(){
         return localStorage.getItem(this.name);
     },
@@ -192,7 +195,10 @@ PseudoFile.prototype = {
     write: function(text){
         this.arr = text.split("\n");
     },
-    append: function(line){
+    append: function(text){
+        this.arr[this.arr.length-1] += text;
+    },
+    appendln: function(line){
         this.arr.push(line);
     },
     read: function(){
@@ -248,8 +254,10 @@ In.prototype = {
         if(this.killer){
             throw this.killer
         }
-        if(this.index < this.stream.lines.length || this.depth < this.stream.line.length ){
-            this.wrap(callback)(this.stream.lines.readLnFrom(prevind).join("\n") + "\n" + this.stream.line.slice(prevdepth));
+        if(this.index < this.stream.lines.length || 
+                this.depth < this.stream.line.length ){
+            this.wrap(callback)(this.stream.lines.readLnFrom(prevind).join("\n") + 
+                    "\n" + this.stream.line.slice(prevdepth));
         }
         else{
             this.stream.listener.push(this.wrap(callback));
@@ -303,7 +311,7 @@ Stream.prototype = {
                 visible = (this.line.length < capture ? 
                             this.lines.read().slice(this.line.length - capture) :
                             "") + 
-                        this.line.slice(-capture);
+                        (capture ? this.line.slice(-capture) : "");
             if(visible){
                 this.listener = [];
                 for(var i = 0; i < callbacks.length; i++){
@@ -319,7 +327,7 @@ Stream.prototype = {
         var line_listener = this.line_listener;
         this.line_listener = [];
         var text = this.line;
-        this.lines.append(this.line)
+        this.lines.appendln(this.line)
         this.line = "";
         for(var i = 0; i < line_listener.length; i++){
             line_listener[i](text);

@@ -100,8 +100,10 @@ Controller.prototype = {
             case 8:
                 self.instream.stream.write("\b");
                 break;
-            case 12:
-                self.instream.stream.write("\r");
+            case 10://line feed
+            case 12://form feed
+            case 13://carriage return
+                self.instream.stream.write("\n");
                 break;
             case 37://left;
                 self.instream.stream.write(String.fromCharCode(27)+"A");

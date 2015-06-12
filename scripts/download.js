@@ -11,4 +11,5 @@ window.process.download = function(args, io){
         body.removeChild(link);
         URL.revokeObjectURL(url);
     }, 100)
+    throw new Success("Yusshhhhh");
 }

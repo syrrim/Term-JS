@@ -8,7 +8,7 @@ window.process.download = function(args, io){
     document.body.appendChild(link);
     link.click();
     setTimeout(function(){
-        body.removeChild(link);
+        document.body.removeChild(link);
         URL.revokeObjectURL(url);
     }, 100)
     throw new Success("Yusshhhhh");

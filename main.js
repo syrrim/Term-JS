@@ -17,25 +17,27 @@ function Controller(backColor, mainColor, errColor, id){
     term.innerHTML = '<span id="finished"></span><span id="current"><span id="pointer" style="color:'+
                             mainColor+';background-color:'+mainColor+'">|</span></span>';
     this.prompt = new Stream().reader();
-    this.pointer = 0;
-    this.prompt.stream.backspace = this.prompt.stream.triggers["\b"];
+    this.after = "";
+    var backspace = this.prompt.stream.triggers["\b"];
     this.prompt.stream.triggers["\b"] = function(){
-        if(self.prompt.stream.line.length)
-            self.updatePrompt();
-        return self.prompt.stream.backspace();
+        backspace.call(self.instream.stream);
+        if(self.instream.stream.line.length)self.updatePrompt();
+        return 1
     }
     this.prompt.stream.triggers[String.fromCharCode(27)] = function(text){
+        var stream = self.instream.stream;
         switch(text[1]){
             case "A":
-                console.log(self.pointer)
-                if(self.pointer>0){
-                    self.pointer --;
+                if(stream.line.length > 0){
+                    self.after = stream.line.slice(-1) + self.after
+                    stream.line = stream.line.slice(0, -1)
                 }
-                console.log(self.pointer)
                 break;
             case "C":
-                if(self.pointer < self.instream.stream.line.length)
-                    self.pointer ++;
+                if(self.after.length > 0){
+                    stream.line = stream.line + self.after[0];
+                    self.after = self.after.slice(1);
+                }
                 break;
             default:
                 console.log("Invalid Escape Code: " + text[1]);
@@ -55,9 +57,16 @@ function Controller(backColor, mainColor, errColor, id){
         }
     });
     document.addEventListener("keydown", function(e){
+
         e = e || window.event;
-        if(self.down(e)){
-            e.preventDefault();
+        try{
+            if(self.down(e)){
+                e.preventDefault();
+            }
+        }
+        catch(err){
+            console.log(err, err.message)
+            e.preventDefault()        
         }
     });
     this.errorReport();
@@ -74,6 +83,7 @@ Controller.prototype = {
         this.err.readln(err);
     },
     press: function(e){
+        console.log("press", e);
         if(e.charCode){
             this.instream.stream.write(String.fromCharCode(e.charCode));
             return true;
@@ -85,6 +95,7 @@ Controller.prototype = {
         return false;
     },
     down: function(e){
+        console.log("down", e)
         switch(e.keyCode){
             case 8:
                 self.instream.stream.write("\b");
@@ -103,6 +114,9 @@ Controller.prototype = {
                 break;
             case 40://down;
                 self.instream.stream.write(String.fromCharCode(27)+"D");
+                break;
+            case 46://4ward del
+                self.instream.stream.write(String.fromCharCode(127));
                 break;
             default:
                 return false;
@@ -127,37 +141,36 @@ Controller.prototype = {
         	outstream = new Stream();
 		this.outstream = outstream.reader();
         this.instream = instream.reader();
+        this.instream.stream.triggers = this.prompt.stream.triggers
         this.displayin();
 		this.pipeline.start(line, instream, outstream, this.err.stream);
         this.displayout();
     },
     updatePrompt(){
-            console.trace();
+            console.log(this.instream.stream.line, this.after);
             if(isNaN(this.pointer) || this.pointer < 0){
                 this.pointer = 0;
             }else if(this.pointer > this.instream.stream.line.length){
                 this.pointer = this.instream.stream.line.length;
             }
-            var text = this.instream.stream.line,
-                html;
-            html = textify(text.slice(0, this.pointer));
-            if(text[this.pointer] === "\n"){
-                html += "<span id='pointer' style='color:"+this.mainColor+";background-color:"+this.mainColor+"'>|</span><br/>"
-            }
-            else if(text[this.pointer]){
-                html += "<span id='pointer' style='color:"+this.backColor+";background-color:"+this.mainColor+"'>"+textify(text[this.pointer])+"</span>"
+            var html = textify(this.instream.stream.line);
+            if(this.after){
+                html += "<span id='pointer' style='color:" + this.backColor +
+                    ";background-color:"+this.mainColor+"'>" + 
+                    textify(this.after[0]) + "</span>";
             }
             else{
-                html += "<span id='pointer' style='color:"+this.mainColor+";background-color:"+this.mainColor+"'>|</span>"
+                html += "<span id='pointer' style='color:" + this.mainColor + 
+                    ";background-color:" + this.mainColor + "'>|</span>"
             }
-            html += textify (text.slice(this.pointer+1));
-            document.getElementById("current").innerHTML = html
-            document.getElementById("term").scrollTop = document.getElementById("current").offsetTop;
+            html += textify (this.after.slice(1));
+            document.getElementById("current").innerHTML = html;
+            document.getElementById("term").scrollTop = 
+                    document.getElementById("current").offsetTop;
     },
     displayprompt: function(){
         var self = this;
         function print(line){
-            self.pointer += line.length
             self.updatePrompt();
             self.instream.read(print);
         }
@@ -167,6 +180,7 @@ Controller.prototype = {
         var self = this;
         function print(text){
             self.println(text);
+            self.updatePrompt();
             self.instream.readln(print);
         }
         this.instream.readln(print);

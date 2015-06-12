@@ -83,7 +83,6 @@ Controller.prototype = {
         this.err.readln(err);
     },
     press: function(e){
-        console.log("press", e);
         if(e.charCode){
             this.instream.stream.write(String.fromCharCode(e.charCode));
             return true;
@@ -95,7 +94,6 @@ Controller.prototype = {
         return false;
     },
     down: function(e){
-        console.log("down", e)
         switch(e.keyCode){
             case 8:
                 self.instream.stream.write("\b");
@@ -149,7 +147,6 @@ Controller.prototype = {
         this.displayout();
     },
     updatePrompt(){
-            console.log(this.instream.stream.line, this.after);
             if(isNaN(this.pointer) || this.pointer < 0){
                 this.pointer = 0;
             }else if(this.pointer > this.instream.stream.line.length){
